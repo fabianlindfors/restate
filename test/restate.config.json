@@ -1,0 +1,8 @@
+{
+    "production": {
+        "database": {
+            "type": "postgres",
+            "connection_string": "postgres://fabianlindfors@localhost/fabianlindfors"
+        }
+    }
+}

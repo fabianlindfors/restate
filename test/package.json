@@ -1,0 +1,19 @@
+{
+  "name": "restate-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "restate generate && jest"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "restate": "file:.."
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.3.1",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.5"
+  }
+}
