@@ -38,6 +38,12 @@ export abstract class BaseClient {
   protected async query(params: QueryParams<any>): Promise<any[]> {
     return await this.db.query(this.modelMeta, params?.where, params?.limit);
   }
+
+  protected async getTransitionById(
+    id: string
+  ): Promise<Transition<any, string>> {
+    return await this.db.getTransitionById(id);
+  }
 }
 
 export abstract class BaseTransitionsClient {

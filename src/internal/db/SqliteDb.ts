@@ -281,6 +281,7 @@ export default class SqliteDb implements Db {
       model: row.model,
       type: row.type,
       data: row.data,
+      note: row.note,
       triggeredBy: row.triggered_by,
     };
   }

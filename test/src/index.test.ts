@@ -31,6 +31,16 @@ describe("transitions", () => {
 
     expect(transition.note).toBe("A little helpful note for the future");
   });
+
+  test("get transition by ID", async () => {
+    const [_, transition] = await client.user.transition.create();
+
+    const foundTransition = await client.user.getTransition(transition.id);
+    expect(foundTransition.id).toBe(transition.id);
+    expect(foundTransition.objectId).toBe(transition.objectId);
+    expect(foundTransition.model).toBe(transition.model);
+    expect(foundTransition.type).toBe(transition.type);
+  });
 });
 
 describe("query", () => {

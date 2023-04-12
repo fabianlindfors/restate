@@ -7,7 +7,7 @@ import { createTestConsumerRunner, SqliteQueue } from "./queue";
 import { BaseClient, BaseTransitionsClient } from "./client";
 import { Config, loadConfig } from "./config";
 import { DataType, String, Int, Decimal, Optional, Bool } from "./dataTypes";
-import {
+import Transition, {
   TransitionParameters,
   TransitionWithData,
   TransitionWithObject,
@@ -31,6 +31,7 @@ export {
   BaseTransitionsClient,
   Config,
   loadConfig,
+  Transition,
   TransitionParameters,
   TransitionWithData,
   TransitionWithObject,

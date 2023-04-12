@@ -283,7 +283,7 @@ function modelClientClass(model: Model): ClassDeclarationStructure {
     kind: StructureKind.Class,
     name: modelClientClassName(model),
     properties: [internalClientProperty, transitionClientProperty],
-    methods: modelQueryMethods(model),
+    methods: [...modelQueryMethods(model), ...modelGetTransitionMethods(model)],
     ctors: [constructor],
     extends: "__Internal.BaseClient",
   };
@@ -383,6 +383,30 @@ function modelQueryMethods(model: Model): MethodDeclarationStructure[] {
       ],
       isAsync: true,
       returnType: `Promise<Out[]>`,
+    },
+  ];
+}
+
+function modelGetTransitionMethods(model: Model): MethodDeclarationStructure[] {
+  const idParameter: ParameterDeclarationStructure = {
+    kind: StructureKind.Parameter,
+    name: "id",
+    type: "string",
+  };
+
+  const transitionType = `__Internal.Transition<${model.pascalCaseName()}.AnyTransition, ${model.pascalCaseName()}.Transition>`;
+
+  return [
+    {
+      kind: StructureKind.Method,
+      name: "getTransition",
+      parameters: [idParameter],
+      statements: [
+        `const result = await this.getTransitionById(id);`,
+        `return result as ${transitionType}`,
+      ],
+      isAsync: true,
+      returnType: `Promise<${transitionType}>`,
     },
   ];
 }
