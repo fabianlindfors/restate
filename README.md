@@ -426,7 +426,7 @@ model Order {
 }
 ```
 
-### Triggering transitions
+### Transitions
 
 The client can be used to trigger initializing transitions, which create new objects. The transition call will return the new object after the transition has been applied.
 
@@ -470,6 +470,20 @@ const [paidOrder, transition] = await restate.order.transition.pay({
 console.log(transition.id);
 // tsn_01gqjyp438r30j3g28jt78cx23
 // Transition IDs have prefix "tsn"
+```
+
+It's of course also possible to get a transition by ID or all transitions for an object:
+
+```typescript
+const [paidOrder, transition] = await restate.order.transition.pay({
+  object: "order_01gqjyp438r30j3g28jt78cx23",
+});
+
+// Find a single transition by ID
+const transitionById = await restate.order.getTransition(transition.id);
+
+// Find all transitions for an object (starting with the latest one)
+const allTransitions = await restate.order.getObjectTransitions(paidOrder);
 ```
 
 For debugging purposes, it's possible to add a free text note to a transition. This field is designed to be human readable and should not be relied upon by your code:
