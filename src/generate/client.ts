@@ -429,10 +429,10 @@ function modelGetTransitionMethods(model: Model): MethodDeclarationStructure[] {
       ],
       statements: [
         `const result = await this.getTransitionById(id);`,
-        `return result as ${transitionType}`,
+        `return result as ${transitionType} | null`,
       ],
       isAsync: true,
-      returnType: `Promise<${transitionType}>`,
+      returnType: `Promise<${transitionType} | null>`,
     },
     {
       kind: StructureKind.Method,

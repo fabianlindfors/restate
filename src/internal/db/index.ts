@@ -30,6 +30,6 @@ export interface Db {
     limit?: number
   ): Promise<any[]>;
 
-  getTransitionById(id: string): Promise<Transition<any, string>>;
+  getTransitionById(id: string): Promise<Transition<any, string> | null>;
   getTransitionsForObject(objectId: string): Promise<Transition<any, string>[]>;
 }

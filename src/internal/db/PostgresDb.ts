@@ -209,10 +209,12 @@ export default class PostgresDb implements Db {
     };
   }
 
-  async getTransitionById(id: string): Promise<Transition<any, string>> {
+  async getTransitionById(
+    id: string
+  ): Promise<Transition<any, string> | undefined> {
     const rows = await this.db.table("transitions").where("id", id).select("*");
     if (rows.length == 0) {
-      throw new Error(`No transition found with ID ${id}`);
+      return null;
     }
 
     const row = rows[0];

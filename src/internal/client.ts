@@ -41,7 +41,7 @@ export abstract class BaseClient {
 
   protected async getTransitionById(
     id: string
-  ): Promise<Transition<any, string>> {
+  ): Promise<Transition<any, string> | null> {
     return await this.db.getTransitionById(id);
   }
 

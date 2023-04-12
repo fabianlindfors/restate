@@ -43,6 +43,11 @@ describe("transitions", () => {
     expect(foundTransition.triggeredBy).toBe(transition.triggeredBy);
   });
 
+  test("get non-existent transition by ID", async () => {
+    const missingTransition = await client.user.getTransition("tsn_missing");
+    expect(missingTransition).toBeNull();
+  });
+
   test("get transitions for object", async () => {
     const [user, createTransition] = await client.user.transition.create();
     const [_, deleteTransition] = await client.user.transition.delete({
