@@ -53,7 +53,8 @@ export abstract class BaseTransitionsClient {
     transitionMeta: TransitionMeta,
     transitionParams: any,
     existingObjectId: string | undefined,
-    transitionFn: (object: any, transition: any) => Promise<any>
+    transitionFn: (object: any, transition: any) => Promise<any>,
+    triggeredBy: string | null
   ): Promise<{
     updatedTransition: Transition<any, string>;
     updatedObject: Object;
@@ -76,6 +77,7 @@ export abstract class BaseTransitionsClient {
       objectId: objectId,
       data: transitionParams.data,
       note: transitionParams.note,
+      triggeredBy,
     };
 
     // Apply the transition implementation (from the project config)

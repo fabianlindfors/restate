@@ -164,6 +164,13 @@ function clientClass(models: Model[]): ClassDeclarationStructure {
     type: "RestateProject",
   };
 
+  const internalTriggeredByPropery: PropertyDeclarationStructure = {
+    kind: StructureKind.Property,
+    name: "__triggeredBy",
+    type: "string | null",
+    initializer: "null",
+  };
+
   const modelPropertyAssignments: string[] = models.map((model) =>
     // `this.{MODEL_NAME} = new {MODEL_NAME}Db(this.__db)`
     printNode(
@@ -232,6 +239,24 @@ function clientClass(models: Model[]): ClassDeclarationStructure {
     returnType: `Promise<void>`,
   };
 
+  const withTriggeredByMethod: MethodDeclarationStructure = {
+    kind: StructureKind.Method,
+    name: "withTriggeredBy",
+    statements: [
+      "const newClient = new RestateClient(this.__project, this.__db)",
+      "newClient.__triggeredBy = triggeredBy",
+      "return newClient",
+    ],
+    parameters: [
+      {
+        kind: StructureKind.Parameter,
+        name: "triggeredBy",
+        type: "string",
+      },
+    ],
+    returnType: `RestateClient`,
+  };
+
   return {
     kind: StructureKind.Class,
     name: "RestateClient",
@@ -239,9 +264,10 @@ function clientClass(models: Model[]): ClassDeclarationStructure {
       ...modelClientProperties,
       internalDbProperty,
       internalConfigProperty,
+      internalTriggeredByPropery,
     ],
     ctors: [constructor],
-    methods: [setupMethod, migrateMethod, closeMethod],
+    methods: [setupMethod, migrateMethod, closeMethod, withTriggeredByMethod],
     isExported: true,
   };
 }
@@ -455,14 +481,14 @@ function modelDbClassTransitionMethod(
   const statements: string[] = [];
   if (fromStates) {
     statements.push(
-      `const fn = async (object: any, transition: any) => await this.transitionImpls.${transition.camelCaseName()}(this.parent, object, transition);`,
+      `const fn = async (object: any, transition: any) => await this.transitionImpls.${transition.camelCaseName()}(this.parent.withTriggeredBy(transition.id), object, transition);`,
       "const id = typeof params.object == 'string' ? params.object : params.object.id;",
-      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.transitions.${transition.pascalCaseName()}, params, id, fn);`
+      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.transitions.${transition.pascalCaseName()}, params, id, fn, this.parent.__triggeredBy);`
     );
   } else {
     statements.push(
-      `const fn = async (object: any, transition: any) => await this.transitionImpls.${transition.camelCaseName()}(this.parent, transition);`,
-      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.transitions.${transition.pascalCaseName()}, params, undefined, fn);`
+      `const fn = async (object: any, transition: any) => await this.transitionImpls.${transition.camelCaseName()}(this.parent.withTriggeredBy(transition.id), transition);`,
+      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.transitions.${transition.pascalCaseName()}, params, undefined, fn, this.parent.__triggeredBy);`
     );
   }
 

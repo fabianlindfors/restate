@@ -192,6 +192,10 @@ function transitionTypes(
           type: "string",
           hasQuestionToken: true,
         },
+        {
+          name: "triggeredBy",
+          type: "string | null",
+        },
       ],
     };
 

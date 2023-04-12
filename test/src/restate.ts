@@ -26,6 +26,15 @@ const project: RestateProject = {
           name: "Test Name",
         };
       },
+      async createDouble(restate: RestateClient) {
+        const [_, duplicateTransition] = await restate.user.transition.create();
+
+        return {
+          state: User.State.Created,
+          name: "Test Name",
+          duplicateTransition: duplicateTransition.id,
+        };
+      },
       async delete(restate: RestateClient, existing: User.Created) {
         return {
           ...existing,

@@ -40,6 +40,21 @@ describe("transitions", () => {
     expect(foundTransition.objectId).toBe(transition.objectId);
     expect(foundTransition.model).toBe(transition.model);
     expect(foundTransition.type).toBe(transition.type);
+    expect(foundTransition.triggeredBy).toBe(transition.triggeredBy);
+  });
+
+  test("triggeredBy not set when running directly", async () => {
+    const [_, transition] = await client.user.transition.create();
+    expect(transition.triggeredBy).toBe(null);
+  });
+
+  test("triggeredBy set to transition ID when created from another transition", async () => {
+    const [user, transition] = await client.user.transition.createDouble();
+    const otherTransition = await client.user.getTransition(
+      user.duplicateTransition
+    );
+
+    expect(otherTransition.triggeredBy).toEqual(transition.id);
   });
 });
 
