@@ -44,6 +44,12 @@ export abstract class BaseClient {
   ): Promise<Transition<any, string>> {
     return await this.db.getTransitionById(id);
   }
+
+  protected async getTransitionsForObject(
+    objectId: string
+  ): Promise<Transition<any, string>[]> {
+    return await this.db.getTransitionsForObject(objectId);
+  }
 }
 
 export abstract class BaseTransitionsClient {

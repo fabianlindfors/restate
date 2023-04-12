@@ -227,6 +227,26 @@ export default class PostgresDb implements Db {
     };
   }
 
+  async getTransitionsForObject(
+    objectId: string
+  ): Promise<Transition<any, string>[]> {
+    const rows = await this.db
+      .table("transitions")
+      .where("object_id", objectId)
+      .orderBy("id", "desc")
+      .select("*");
+
+    return rows.map((row) => ({
+      id: row.id,
+      objectId: row.object_id,
+      model: row.model,
+      type: row.type,
+      data: row.data,
+      note: row.note,
+      triggeredBy: row.triggered_by,
+    }));
+  }
+
   async getUnprocessedTasks(limit: number): Promise<Task[]> {
     const rows = await this.db
       .table("consumer_tasks")

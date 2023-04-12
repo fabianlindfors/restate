@@ -43,6 +43,18 @@ describe("transitions", () => {
     expect(foundTransition.triggeredBy).toBe(transition.triggeredBy);
   });
 
+  test("get transitions for object", async () => {
+    const [user, createTransition] = await client.user.transition.create();
+    const [_, deleteTransition] = await client.user.transition.delete({
+      object: user,
+    });
+
+    const transitions = await client.user.getObjectTransitions(user);
+    expect(transitions).toHaveLength(2);
+    expect(transitions[0].id).toBe(deleteTransition.id);
+    expect(transitions[1].id).toBe(createTransition.id);
+  });
+
   test("triggeredBy not set when running directly", async () => {
     const [_, transition] = await client.user.transition.create();
     expect(transition.triggeredBy).toBe(null);

@@ -29,5 +29,7 @@ export interface Db {
     where?: { [key: string]: any },
     limit?: number
   ): Promise<any[]>;
+
   getTransitionById(id: string): Promise<Transition<any, string>>;
+  getTransitionsForObject(objectId: string): Promise<Transition<any, string>[]>;
 }

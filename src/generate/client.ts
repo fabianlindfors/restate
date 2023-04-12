@@ -414,25 +414,43 @@ function modelQueryMethods(model: Model): MethodDeclarationStructure[] {
 }
 
 function modelGetTransitionMethods(model: Model): MethodDeclarationStructure[] {
-  const idParameter: ParameterDeclarationStructure = {
-    kind: StructureKind.Parameter,
-    name: "id",
-    type: "string",
-  };
-
   const transitionType = `__Internal.Transition<${model.pascalCaseName()}.AnyTransition, ${model.pascalCaseName()}.Transition>`;
 
   return [
     {
       kind: StructureKind.Method,
       name: "getTransition",
-      parameters: [idParameter],
+      parameters: [
+        {
+          kind: StructureKind.Parameter,
+          name: "id",
+          type: "string",
+        },
+      ],
       statements: [
         `const result = await this.getTransitionById(id);`,
         `return result as ${transitionType}`,
       ],
       isAsync: true,
       returnType: `Promise<${transitionType}>`,
+    },
+    {
+      kind: StructureKind.Method,
+      name: "getObjectTransitions",
+      parameters: [
+        {
+          kind: StructureKind.Parameter,
+          name: "object",
+          type: `string | ${model.pascalCaseName()}.Any`,
+        },
+      ],
+      statements: [
+        "const id = typeof object == 'string' ? object : object.id;",
+        `const result = await this.getTransitionsForObject(id);`,
+        `return result as ${transitionType}[]`,
+      ],
+      isAsync: true,
+      returnType: `Promise<${transitionType}[]>`,
     },
   ];
 }
