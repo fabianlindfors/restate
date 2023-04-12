@@ -44,6 +44,7 @@ export default class PostgresDb implements Db {
         table.text("object_id").notNullable();
         table.jsonb("data");
         table.text("note");
+        table.text("triggered_by");
         table.datetime("applied_at").notNullable().defaultTo(this.db.fn.now());
       });
     }
@@ -149,6 +150,7 @@ export default class PostgresDb implements Db {
       type: transition.type,
       data: transition.data,
       note: transition.note,
+      triggered_by: transition.triggeredBy,
     });
   }
 
@@ -220,6 +222,7 @@ export default class PostgresDb implements Db {
       model: row.model,
       type: row.type,
       data: row.data,
+      triggeredBy: row.triggered_by,
     };
   }
 

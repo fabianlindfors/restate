@@ -4,10 +4,12 @@ export default interface Transition<Data, Type> {
   model: string;
   type: Type;
   data: Data;
+  triggeredBy?: string;
   note?: string;
 }
 
 export interface TransitionParameters {
+  triggeredBy?: string;
   note?: string;
 }
 
