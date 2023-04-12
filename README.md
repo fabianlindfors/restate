@@ -5,10 +5,10 @@ Restate is an experimental Typescript framework for building backends using stat
 The point of Restate is to help build systems which are:
 
 - **Debuggable:** All state transitions are tracked, making it easy to trace how a database object ended up in its current state and what triggered its transitions.
-- **Understandable:** All business logic is encoded in state transitions and consumers, making it easy to understand the full behavior of the system. Writing asynchronous consumers is also a great way of decoupling code.
-- **Reliable:** Database transactions are used for transitions to avoid problems during concurrent updates and unexpected failures. Consumers use change data capture to never miss a transition and failed tasks are automatically retried.
+- **Understandable:** All business logic is encoded in state transitions and consumers, making it easy to understand the full behavior of your system. Writing decoupled code also becomes easier with consumers.
+- **Reliable:** Consumers are automatically retried on failure and change data capture is used to ensure no transitions are missed.
 
-Does that sound pretty nice? Then keep reading for a walkthrough of a sample project!
+Does that sound interesting? Then keep reading for a walkthrough of a sample project!
 
 ## Getting started
 
@@ -16,22 +16,22 @@ Does that sound pretty nice? Then keep reading for a walkthrough of a sample pro
 
 To get started with Restate, we are going to create a standard Node project and install Restate:
 
-```shell
-mkdir my-first-restate-project && cd my-first-restate-project
-npm init
-npm install --save restate
+```console
+$ mkdir my-first-restate-project && cd my-first-restate-project
+$ npm init
+$ npm install --save restate
 ```
 
 For this example, we are going to be using Express to build our API, so we need to install that as well:
 
-```shell
-npm install --save express
+```console
+$ npm install --save express
 ```
 
 Restate has a built in development tool with auto-reloading, start it and keep it running in the background as you code:
 
-```shell
-npx restate
+```console
+$ npx restate
 ```
 
 You'll see a warning message saying that no project definition was found, but don't worry about that, we'll create one soon!
@@ -48,33 +48,33 @@ model Order {
   // In this case, they will look something like: "order_01gqjyp438r30j3g28jt78cx23"
   prefix "order"
 
-	// The common fields defined here will be available across all states
-	field amount: Int
+  // The common fields defined here will be available across all states
+  field amount: Int
 
-	state Created {}
+  state Created {}
 
-	state Paid {
-		field paymentReference: String
-	}
+  state Paid {
+    field paymentReference: String
+  }
 
-	// States can inherit other state's fields, so in this case `DeliveryBooked` will have `amount` and `paymentReference` fields as well
-	state DeliveryBooked: Paid {
-		field trackingNumber: String
-	}
+  // States can inherit other state's fields, so in this case `DeliveryBooked` will have `amount` and `paymentReference` fields as well
+  state DeliveryBooked: Paid {
+    field trackingNumber: String
+  }
 
-	// `Create` doesn't have any starting states and is hence an initializing transition.
-	// It will be used to create new orders.
-	transition Create: Created {
-		field amount: Int
-	}
+  // `Create` doesn't have any starting states and is hence an initializing transition.
+  // It will be used to create new orders.
+  transition Create: Created {
+    field amount: Int
+  }
 
-	// `Pay` is triggered when payment is received for the order
-	transition Pay: Created -> Paid {
-		field paymentReference: String
-	}
+  // `Pay` is triggered when payment is received for the order
+  transition Pay: Created -> Paid {
+    field paymentReference: String
+  }
 
-	// `BookDelivery` is triggered when an order has been sent and we are ready to book delivery
-	transition BookDelivery: Paid -> DeliveryBooked {}
+  // `BookDelivery` is triggered when an order has been sent and we are ready to book delivery
+  transition BookDelivery: Paid -> DeliveryBooked {}
 }
 ```
 
@@ -82,10 +82,10 @@ model Order {
 
 Once we have defined our models, the dev session you have running will automatically generate types for your models as well as a client to interact with them. All of this can be imported directly from the `restate` module.
 
-The starting point of any Restate project is the config, which lives in `src/restate.ts`. The config we export from that file defines how our models' transitions are handled. Let's start with some placeholder values, create a `src/restate.ts` file with the following code:
+The starting point of any Restate project is the project definition, which lives in `src/restate.ts`. The definition we export from that file defines how our models' transitions are handled. Let's start with some placeholder values, create a `src/restate.ts` file with the following code:
 
 ```typescript
-import { RestateProject, RestateClient, Order } from "reshape";
+import { RestateProject, RestateClient, Order } from "restate";
 
 const project: RestateProject = {
   main: async function (restate: RestateClient) {
@@ -119,16 +119,17 @@ const project: RestateProject = {
   },
 };
 
-// The project definition file should export the config
+// The definition should be the default export
 export default project;
 ```
 
 ### Creating orders
 
-Before we can create orders, we need to actually implement the `Create` transition in our `src/restate.ts`:
+Before we can create orders, we need to actually implement the `Create` transition in `src/restate.ts`:
 
 ```typescript
-const config: Config = {
+const project: RestateProject = {
+  // ...
   transitions: {
     order: {
       async create(restate: RestateClient, transition: Order.Create) {
@@ -149,9 +150,9 @@ To interact with our backend, we are going to create a simple HTTP API using `ex
 
 ```typescript
 import express from "express";
-import { Config, RestateClient, Order } from "reshape";
+import { RestateProject, RestateClient, Order } from "restate";
 
-const config: Config = {
+const project: RestateProject = {
   async main(restate: RestateClient) {
     const app = express();
 
@@ -160,7 +161,7 @@ const config: Config = {
       const amount = parseInt(req.query.amount);
 
       // Trigger `Create` transition to create a new order object
-      const order = await restate.order.transition.create({
+      const [order] = await restate.order.transition.create({
         data: {
           amount,
         },
@@ -188,7 +189,7 @@ $ curl -X POST "localhost:3000/orders?amount=100"
 }
 ```
 
-It works and we get a beautiful order back! Here you see both the `amount` field, which we specified in `Order.rst`, but also `id` and `state`. These are fields which are automatically added for all models.
+It works and we get a nice order back! Here you see both the `amount` field, which we specified in `Order.rst`, but also `id` and `state`. These are fields which are automatically added for all models.
 
 ### Querying orders
 
@@ -221,7 +222,8 @@ $ curl localhost:3000/orders
 Now we are getting to the nice parts. We've created our order and the next step is to update it to the paid state once we receive a payment. The first step is to add a very simple implementation for the `Pay` transition:
 
 ```typescript
-const config: Config = {
+const project: RestateProject = {
+  // ...
   transitions: {
     order: {
       async pay(
@@ -249,7 +251,7 @@ app.post("/webhook/order_paid/:orderId", async (req, res) => {
   const reference = req.query.reference;
 
   // Trigger the `Pay` transition for the order, which returns the updated object
-  const order = await restate.order.transition.pay({
+  const [order] = await restate.order.transition.pay({
     order: req.params.orderId,
     data: {
       // The `Pay` transition requires us to pass the payment reference
@@ -279,7 +281,7 @@ $ curl -X POST "localhost:3000/webhook/order_paid/order_01gqjyp438r30j3g28jt78cx
 For the final part of this example, we want to book a delivery when an order is paid, with an imagined API call to our shipping carrier. Let's start by implementing the final `bookDelivery` transition for this:
 
 ```typescript
-const config: Config = {
+const project: RestateProject = {
   // ...
   transitions: {
     order: {
@@ -300,7 +302,6 @@ const config: Config = {
       },
     },
   },
-  // ...
 };
 ```
 
@@ -309,7 +310,7 @@ What we could do is simply trigger this transition right in our payment webhook,
 Consumers let's us write code that runs asynchronously in response to transitions. This lets us improve reliability, performance and code quality through decoupling. Like most everything in Restate, consumers are defined in `src/restate.ts`. In our case, we want to trigger the `BookDelivery` transition when the `Pay` transition has completed, so let's add a consumer for that:
 
 ```typescript
-const config: Config = {
+const project: RestateProject = {
   // ...
   consumers: [
     Order.createConsumer({
@@ -400,13 +401,9 @@ Restate supports the following data types:
 | ---------------- | -------------------------------- | ------------------------- |
 | `String`         | Variable-length string           | `string`                  |
 | `Int`            | Integer which may be negative    | `number`                  |
-| `Decimal`        | A decimal number                 | `number`                  |
-| `Bool`           | A boolean, either true or false  | `boolean`                 |
+| `Decimal`        | Decimal number                   | `number`                  |
+| `Bool`           | Boolean, either true or false    | `boolean`                 |
 | `Optional[Type]` | Nullable version of another type | `Type \| undefined`       |
-
-### States
-
-### Transitions
 
 ## Client
 
@@ -539,9 +536,9 @@ const orders: Order.Created[] = await restate.order.findAll({
 
 ## Testing
 
-Restate has built-in support for testing with a real database. In your test cases, import your project definition from `src/restate.ts` and pass it to `setupTestClient` to create a new Restate client for testing. This client will automatically configure an in-memory SQLite database and will run any consumers synchronously when transitions are triggered.
+Restate has built-in support for testing with a real database. In your test cases, import the project definition from `src/restate.ts` and pass it to `setupTestClient` to create a new Restate client for testing. This client will automatically configure an in-memory SQLite database and will run any consumers synchronously when transitions are triggered.
 
-Here's an example in [Jest](https://jestjs.io), but it should work with any test framework:
+Here's an example in [Jest](https://jestjs.io), but any test framework will work:
 
 ```typescript
 import { test, expect, beforeEach } from "@jest/globals";
@@ -575,13 +572,11 @@ test("delivery is booked when order is paid", async () => {
 
   // The `BookDeliveryAfterOrderPaid` consumer should have been triggered when the order was paid
   // and transitioned it into `DeliveryBooked`. With the test client, consumers are run synchronously.
-  const updatedOrder = await restate.order
-    .query({
-      where: {
-        id: order.id,
-      },
-    })
-    .findOneOrThrow();
+  const updatedOrder = await restate.order.findOneOrThrow({
+    where: {
+      id: order.id,
+    },
+  });
   expect(user.state).toBe(Order.State.DeliveryBooked);
   expect(user.trackingNumber).toBe("123456789");
 });
@@ -593,7 +588,7 @@ If you want to configure Restate, create a `restate.config.json` file in the roo
 
 In your config file, you can configure what database to use. Restate supports both Postgres and SQLite, where we recommend using Postgres in production and SQLite during development and testing. Below is an annotated example of a config file, showing what settings exist and the defaults:
 
-```json
+```jsonc
 {
   "database": {
     "type": "postgres",
