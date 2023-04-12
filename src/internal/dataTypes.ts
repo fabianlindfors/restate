@@ -89,7 +89,7 @@ export class Optional implements DataType {
   constructor(private nestedType: DataType) {}
 
   validate(value: any) {
-    if (value !== undefined) {
+    if (value !== undefined && value !== null) {
       this.nestedType.validate(value);
     }
   }
