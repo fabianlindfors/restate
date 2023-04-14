@@ -61,7 +61,8 @@ export async function runTask(
   const [modelMeta, _] = getMetaForTransition(modelMetas, transition);
   const object = await db.getById(modelMeta, transition.objectId);
 
-  await consumer.handler(client, object, transition);
+  const taskSpecificClient = client.withTriggeredBy(task.id);
+  await consumer.handler(taskSpecificClient, object, transition);
 
   const updatedTask: Task = {
     ...task,

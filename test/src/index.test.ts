@@ -73,6 +73,18 @@ describe("transitions", () => {
 
     expect(otherTransition.triggeredBy).toEqual(transition.id);
   });
+
+  test("triggeredBy set to task ID when created from a consumer", async () => {
+    const [user] = await client.user.transition.create();
+    const email = await client.email.findOneOrThrow({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const transitions = await client.email.getObjectTransitions(email);
+    expect(transitions[0].triggeredBy).not.toBeNull();
+  });
 });
 
 describe("query", () => {
