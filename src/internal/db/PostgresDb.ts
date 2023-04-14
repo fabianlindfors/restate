@@ -187,26 +187,21 @@ export default class PostgresDb implements Db {
     return [];
   }
 
-  async createConsumerTask(
-    transitionId: string,
-    consumer: string,
-    state: TaskState
-  ): Promise<Task> {
+  async insertTask(task: Task): Promise<void> {
     const id = generateConsumerTaskId();
 
     await this.db("consumer_tasks").insert({
       id,
-      transition_id: transitionId,
-      consumer,
-      state,
+      transition_id: task.transitionId,
+      consumer: task.consumer,
+      state: task.state,
     });
+  }
 
-    return {
-      id,
-      transitionId,
-      consumer,
-      state,
-    };
+  async updateTask(task: Task): Promise<void> {
+    await this.db("consumer_tasks").where("id", task.id).update({
+      state: task.state,
+    });
   }
 
   async getTransitionById(

@@ -1,13 +1,13 @@
-import { toSnakeCase } from "js-convert-case";
 import { Client, ClientConfig, Connection } from "pg";
 import { Pgoutput, PgoutputPlugin } from "pg-logical-replication";
 import { Queue } from ".";
-import Consumer, { Task, TaskState } from "../consumer";
+import Consumer, { Task } from "../consumer";
 import { PostgresDb } from "../db";
 import { ModelMeta, TransitionMeta } from "../meta";
 import Project from "../project";
 import Transition from "../transition";
 import Logger from "../../cmd/logger";
+import { createTasksForTransition, runTask } from "./common";
 
 const MAX_TASKS = 10;
 const TASK_PROCESS_INTERVAL_MS = 1_000;
@@ -55,65 +55,17 @@ export class PostgresQueue implements Queue {
         return;
       }
 
-      await Promise.all(tasks.map((task) => this.processTask(txn, task)));
+      await Promise.all(
+        tasks.map((task) =>
+          runTask(txn, this.modelMetas, this.project, this.client, task)
+        )
+      );
     });
 
     // If no tasks were found, we wait a set interval and then try again
     // If tasks were found and processed, we simply try again immediately
     let waitTime = numTasks == 0 ? TASK_PROCESS_INTERVAL_MS : 0;
     setTimeout(async () => await this.processTasks(), waitTime);
-  }
-
-  private async processTask(txn: PostgresDb, task: Task) {
-    const consumer = this.getConsumerByName(task.consumer);
-    const transition = await txn.getTransitionById(task.transitionId);
-    const [modelMeta, _] = this.getMetaForTransition(transition);
-    const object = await txn.getById(modelMeta, transition.objectId);
-
-    this.logger.info("Running task", {
-      task: task.id,
-      consumer: consumer.name,
-      transition: transition.id,
-      object: transition.objectId,
-    });
-    await consumer.handler(this.client, object, transition);
-    await this.db.setTaskProcessed(task.id);
-  }
-
-  private getConsumerByName(name: string): Consumer {
-    const allConsumers = this.project.consumers;
-    if (allConsumers == undefined) {
-      throw new Error(`couldn't find consumer named ${name}`);
-    }
-
-    const consumer = allConsumers.find((consumer) => consumer.name == name);
-    if (consumer == undefined) {
-      throw new Error(`couldn't find consumer named ${name}`);
-    }
-
-    return consumer;
-  }
-
-  private getMetaForTransition(
-    transition: Transition<any, string>
-  ): [ModelMeta, TransitionMeta] {
-    const modelMeta = this.modelMetas.find(
-      (meta) => meta.name == transition.model
-    );
-    if (modelMeta === undefined) {
-      throw new Error(`couldn't find model meta with name ${transition.model}`);
-    }
-
-    const transitionMeta = Object.values(modelMeta.transitions).find(
-      (transitionMeta) => transitionMeta.name == transition.type
-    );
-    if (transitionMeta === undefined) {
-      throw new Error(
-        `couldn't find transition meta with name ${transition.type}`
-      );
-    }
-
-    return [modelMeta, transitionMeta];
   }
 }
 
@@ -156,7 +108,7 @@ class TaskEnqueuer {
     this.logger.debug("Got lock-y! Starting enqueuer");
 
     // Set up replication if necessary. Only needs to be done once.
-    this.configureReplication();
+    await this.configureReplication();
 
     this.connection().on("copyData", ({ chunk }: { chunk: Buffer }) => {
       if (chunk[0] != 0x77 && chunk[0] != 0x6b) {
@@ -283,59 +235,20 @@ class TaskEnqueuer {
   }
 
   private async createTasksForTransition(transition: Transition<any, string>) {
-    const [modelMeta, transitionMeta] = this.getMetaForTransition(transition);
-    const allConsumers = this.project.consumers;
-    if (allConsumers === undefined) {
-      return;
-    }
-
-    // Find all consumers which match this transition
-    const consumers = allConsumers.filter(
-      (consumer) =>
-        consumer.model.name == modelMeta.name &&
-        consumer.transitions.includes(toSnakeCase(transitionMeta.name))
+    const tasks = await createTasksForTransition(
+      this.db,
+      this.modelMetas,
+      this.project,
+      transition
     );
 
-    // Create a new task for each consumer
-    for (const consumer of consumers) {
-      if (!consumer.transitions.includes(toSnakeCase(transition.type))) {
-        continue;
-      }
-
-      const task = await this.db.createConsumerTask(
-        transition.id,
-        consumer.name,
-        TaskState.Created
-      );
-
+    for (const task of tasks) {
       this.logger.info("Enqueued task", {
         task: task.id,
         transition: transition.id,
         consumer: task.consumer,
       });
     }
-  }
-
-  private getMetaForTransition(
-    transition: Transition<any, string>
-  ): [ModelMeta, TransitionMeta] {
-    const modelMeta = this.modelMetas.find(
-      (meta) => meta.name == transition.model
-    );
-    if (modelMeta === undefined) {
-      throw new Error(`couldn't find model meta with name ${transition.model}`);
-    }
-
-    const transitionMeta = Object.values(modelMeta.transitions).find(
-      (transitionMeta) => transitionMeta.name == transition.type
-    );
-    if (transitionMeta === undefined) {
-      throw new Error(
-        `couldn't find transition meta with name ${transition.type}`
-      );
-    }
-
-    return [modelMeta, transitionMeta];
   }
 
   private transitionFromLog(

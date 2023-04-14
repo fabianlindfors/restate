@@ -3,6 +3,7 @@ import Transition from "../transition";
 import TestDb from "./TestDb";
 import SqliteDb from "./SqliteDb";
 import PostgresDb from "./PostgresDb";
+import { Task, TaskState } from "../consumer";
 
 export { TestDb, SqliteDb, PostgresDb };
 
@@ -14,15 +15,17 @@ export interface Db {
 
   transaction(fn: (db: Db) => Promise<void>): Promise<void>;
 
-  // Transitioning
+  // Transitions
   applyTransition(
     modelMeta: ModelMeta,
     transitionMeta: TransitionMeta,
     transition: Transition<any, string>,
     object: Object
   ): Promise<void>;
+  getTransitionById(id: string): Promise<Transition<any, string> | null>;
+  getTransitionsForObject(objectId: string): Promise<Transition<any, string>[]>;
 
-  // Querying
+  // Object querying
   getById(model: ModelMeta, id: string): Promise<any>;
   query(
     model: ModelMeta,
@@ -30,6 +33,7 @@ export interface Db {
     limit?: number
   ): Promise<any[]>;
 
-  getTransitionById(id: string): Promise<Transition<any, string> | null>;
-  getTransitionsForObject(objectId: string): Promise<Transition<any, string>[]>;
+  // Tasks
+  insertTask(task: Task): Promise<void>;
+  updateTask(task: Task): Promise<void>;
 }

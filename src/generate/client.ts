@@ -134,7 +134,7 @@ function testClientFunction(): FunctionDeclarationStructure {
       "await db.setup()",
       "await db.migrate()",
       "const client = new RestateClient(project, db)",
-      "const consumerCallback = __Internal.createTestConsumerRunner(project, client)",
+      "const consumerCallback = __Internal.createTestConsumerRunner(db, project, client, __ModelMetas)",
       "db.setTransitionCallback(consumerCallback)",
       "return client",
     ],

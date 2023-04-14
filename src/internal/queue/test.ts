@@ -1,32 +1,31 @@
-import { toSnakeCase } from "js-convert-case";
 import Project from "../project";
 import { Callback } from "../db/TestDb";
 import { ModelMeta, TransitionMeta } from "../meta";
 import Transition from "../transition";
+import { createTasksForTransition, runTask } from "./common";
+import { Db } from "../db";
 
 export function createTestConsumerRunner(
+  db: Db,
   project: Project,
-  client: any
+  client: any,
+  modelMetas: ModelMeta[]
 ): Callback {
   return async (
-    modelMeta: ModelMeta,
-    transitionMeta: TransitionMeta,
+    _modelMeta: ModelMeta,
+    _transitionMeta: TransitionMeta,
     transition: Transition<any, string>,
-    updatedObject: any
+    _updatedObject: any
   ): Promise<void> => {
-    if (project.consumers === undefined) {
-      return;
-    }
-
-    // Find all consumers which match this transition
-    const consumers = project.consumers.filter(
-      (consumer) =>
-        consumer.model.name == modelMeta.name &&
-        consumer.transitions.includes(toSnakeCase(transitionMeta.name))
+    const tasks = await createTasksForTransition(
+      db,
+      modelMetas,
+      project,
+      transition
     );
 
-    // Execute each consumer
-    const consumerPromises = consumers.map(consumer => consumer.handler(client, updatedObject, transition))
-    await Promise.all(consumerPromises)
+    await Promise.all(
+      tasks.map((task) => runTask(db, modelMetas, project, client, task))
+    );
   };
 }
