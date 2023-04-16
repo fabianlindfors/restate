@@ -1,7 +1,7 @@
 import { ModelMeta, StateMeta, FieldMeta, TransitionMeta } from "./meta";
 import { ArrayElementType, QueryParams } from "./types";
 import { Db, TestDb, SqliteDb } from "./db";
-import Consumer from "./consumer";
+import Consumer, { Task } from "./consumer";
 import Project from "./project";
 import { createTestConsumerRunner, SqliteQueue } from "./queue";
 import { BaseClient, BaseTransitionsClient } from "./client";
@@ -24,6 +24,7 @@ export {
   ArrayElementType,
   QueryParams,
   Consumer,
+  Task,
   Project,
   createTestConsumerRunner,
   SqliteQueue,

@@ -5,7 +5,6 @@ import { FieldMeta, ModelMeta, TransitionMeta } from "../meta";
 import BaseObject from "../object";
 import Transition from "../transition";
 import { toPascalCase, toSnakeCase } from "js-convert-case";
-import { generateConsumerTaskId } from "../id";
 import { Task, TaskState } from "../consumer";
 import { String, Int, DataType, Decimal, Optional, Bool } from "../dataTypes";
 
@@ -188,10 +187,8 @@ export default class PostgresDb implements Db {
   }
 
   async insertTask(task: Task): Promise<void> {
-    const id = generateConsumerTaskId();
-
     await this.db("consumer_tasks").insert({
-      id,
+      id: task.id,
       transition_id: task.transitionId,
       consumer: task.consumer,
       state: task.state,
@@ -202,6 +199,20 @@ export default class PostgresDb implements Db {
     await this.db("consumer_tasks").where("id", task.id).update({
       state: task.state,
     });
+  }
+
+  async getTasksForTransition(transitionId: string): Promise<Task[]> {
+    const rows = await this.db
+      .table("consumer_tasks")
+      .where("transition_id", transitionId)
+      .select("*");
+
+    return rows.map((row) => ({
+      id: row.id,
+      transitionId: row.transition_id,
+      state: row.state,
+      consumer: row.consumer,
+    }));
   }
 
   async getTransitionById(

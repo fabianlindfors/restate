@@ -36,4 +36,5 @@ export interface Db {
   // Tasks
   insertTask(task: Task): Promise<void>;
   updateTask(task: Task): Promise<void>;
+  getTasksForTransition(transition_id: string): Promise<Task[]>;
 }

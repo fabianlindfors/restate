@@ -1,6 +1,6 @@
 import { FieldMeta, ModelMeta, TransitionMeta } from "../meta";
 import Transition from "../transition";
-import { generateConsumerTaskId, generateTransactionId } from "../id";
+import { generateTransactionId } from "../id";
 import knex, { Knex } from "knex";
 import { toPascalCase, toSnakeCase } from "js-convert-case";
 import { Db } from ".";
@@ -309,10 +309,8 @@ export default class SqliteDb implements Db {
   }
 
   async insertTask(task: Task): Promise<void> {
-    const id = generateConsumerTaskId();
-
-    await this.db("consumer_tasks").insert({
-      id,
+    await this.db.table("consumer_tasks").insert({
+      id: task.id,
       transition_id: task.transitionId,
       consumer: task.consumer,
       state: task.state,
@@ -320,9 +318,23 @@ export default class SqliteDb implements Db {
   }
 
   async updateTask(task: Task): Promise<void> {
-    await this.db("consumer_tasks").where("id", task.id).update({
+    await this.db.table("consumer_tasks").where("id", task.id).update({
       state: task.state,
     });
+  }
+
+  async getTasksForTransition(transitionId: string): Promise<Task[]> {
+    const rows = await this.db
+      .table("consumer_tasks")
+      .where("transition_id", transitionId)
+      .select("*");
+
+    return rows.map((row) => ({
+      id: row.id,
+      transitionId: row.transition_id,
+      state: row.state,
+      consumer: row.consumer,
+    }));
   }
 
   async getUnprocessedTasks(): Promise<Task[]> {

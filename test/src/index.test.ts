@@ -6,6 +6,7 @@ import {
   User,
 } from "../../src/generated";
 import { State } from "../../src/generated/User";
+import { TaskState } from "../../src/internal/consumer";
 import project from "./restate";
 
 let client: RestateClient;
@@ -157,10 +158,11 @@ describe("query", () => {
 
 describe("consumers", () => {
   let user: User.Any;
+  let transition: User.Create;
   let results: Email.Any[];
 
   beforeEach(async () => {
-    [user] = await client.user.transition.create();
+    [user, transition] = await client.user.transition.create();
     results = await client.email.findAll({
       where: {
         userId: user.id,
@@ -179,6 +181,14 @@ describe("consumers", () => {
     // `SendEmail` consumer should have transitioned created email to sent
     expect(results).toHaveLength(1);
     expect(results[0].state).toBe(Email.State.Sent);
+  });
+
+  test("getTasksForTransition returns tasks", async () => {
+    const tasks = await client.getTasksForTransition(transition);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].id).toBeDefined();
+    expect(tasks[0].state).toBe(TaskState.Completed);
+    expect(tasks[0].transitionId).toBe(transition.id);
   });
 });
 

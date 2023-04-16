@@ -257,6 +257,24 @@ function clientClass(models: Model[]): ClassDeclarationStructure {
     returnType: `RestateClient`,
   };
 
+  const getTasksForTransitionMethod: MethodDeclarationStructure = {
+    kind: StructureKind.Method,
+    name: "getTasksForTransition",
+    isAsync: true,
+    parameters: [
+      {
+        kind: StructureKind.Parameter,
+        name: "transition",
+        type: "string | __Internal.Transition<any, string>",
+      },
+    ],
+    statements: [
+      "const id = typeof transition == 'string' ? transition : transition.id;",
+      "return await this.__db.getTasksForTransition(id);",
+    ],
+    returnType: `Promise<__Internal.Task[]>`,
+  };
+
   return {
     kind: StructureKind.Class,
     name: "RestateClient",
@@ -267,7 +285,13 @@ function clientClass(models: Model[]): ClassDeclarationStructure {
       internalTriggeredByPropery,
     ],
     ctors: [constructor],
-    methods: [setupMethod, migrateMethod, closeMethod, withTriggeredByMethod],
+    methods: [
+      setupMethod,
+      migrateMethod,
+      closeMethod,
+      withTriggeredByMethod,
+      getTasksForTransitionMethod,
+    ],
     isExported: true,
   };
 }
