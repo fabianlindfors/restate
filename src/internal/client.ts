@@ -15,10 +15,10 @@ export abstract class BaseClient {
 
   protected async internalFindOne(
     params: QueryParams<any>
-  ): Promise<any | undefined> {
+  ): Promise<any | null> {
     const results = await this.query(params);
     if (results.length == 0) {
-      return undefined;
+      return null;
     }
 
     return results[0];

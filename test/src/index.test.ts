@@ -142,7 +142,7 @@ describe("query", () => {
       },
     });
 
-    expect(result).toBeUndefined();
+    expect(result).toBeNull();
   });
 
   test("findOneOrThrow non-existing", async () => {

@@ -405,10 +405,10 @@ function modelQueryMethods(model: Model): MethodDeclarationStructure[] {
       parameters: [filterParameter],
       statements: [
         `const result = await this.internalFindOne(params || {});`,
-        `return result as Out | undefined`,
+        `return result as Out | null`,
       ],
       isAsync: true,
-      returnType: `Promise<Out | undefined>`,
+      returnType: `Promise<Out | null>`,
     },
     {
       kind: StructureKind.Method,
