@@ -1,4 +1,17 @@
 import { DataType } from "./dataTypes";
+import Transition from "./transition";
+
+export class ProjectMeta {
+  constructor(private modelMetas: ModelMeta[]) {}
+
+  allModelMetas(): ModelMeta[] {
+    return this.modelMetas;
+  }
+
+  getModelMeta(name: string): ModelMeta {
+    return this.modelMetas.find((meta) => meta.name === name);
+  }
+}
 
 export type ModelMeta = {
   // Name in PascalCase

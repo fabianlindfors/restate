@@ -15,7 +15,7 @@ export default class Worker {
     const project = await loadProject();
     const generatedModule = await loadGeneratedModule();
 
-    const db = dbFromConfig(generatedModule.__ModelMetas, config.database);
+    const db = dbFromConfig(generatedModule.__ProjectMeta, config.database);
 
     const Client = generatedModule.RestateClient;
     const client = new Client(this.project, db);
@@ -27,7 +27,7 @@ export default class Worker {
 
     const queue = queueFromDb(
       logger,
-      generatedModule.__ModelMetas,
+      generatedModule.__ProjectMeta,
       db,
       client,
       project

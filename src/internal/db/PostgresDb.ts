@@ -1,7 +1,7 @@
 import knex, { Knex } from "knex";
 import { Db } from ".";
 import { PostgresDatabaseConfig } from "../config";
-import { FieldMeta, ModelMeta, TransitionMeta } from "../meta";
+import { FieldMeta, ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
 import BaseObject from "../object";
 import Transition from "../transition";
 import { toPascalCase, toSnakeCase } from "js-convert-case";
@@ -9,22 +9,22 @@ import { Task, TaskState } from "../consumer";
 import { String, Int, DataType, Decimal, Optional, Bool } from "../dataTypes";
 
 export default class PostgresDb implements Db {
-  constructor(private models: ModelMeta[], private db: Knex) {}
+  constructor(private projectMeta: ProjectMeta, private db: Knex) {}
 
   static fromConfig(
-    models: ModelMeta[],
+    projectMeta: ProjectMeta,
     config: PostgresDatabaseConfig
   ): PostgresDb {
     const db = knex({
       client: "postgres",
       connection: config.connection_string,
     });
-    return new PostgresDb(models, db);
+    return new PostgresDb(projectMeta, db);
   }
 
   async transaction(fn: (db: PostgresDb) => Promise<void>) {
     await this.db.transaction(async (txn) => {
-      const newDb = new PostgresDb(this.models, txn);
+      const newDb = new PostgresDb(this.projectMeta, txn);
       await fn(newDb);
     });
   }
@@ -61,14 +61,14 @@ export default class PostgresDb implements Db {
 
   async migrate() {
     // Create model tables
-    for (const model of this.models) {
-      if (!(await this.db.schema.hasTable(tableName(model)))) {
-        await this.db.schema.createTable(tableName(model), (table) => {
+    for (const modelMeta of this.projectMeta.allModelMetas()) {
+      if (!(await this.db.schema.hasTable(tableName(modelMeta)))) {
+        await this.db.schema.createTable(tableName(modelMeta), (table) => {
           const addedFields = new Set<string>();
           table.text("id").primary();
           table.text("state").notNullable();
 
-          for (const [_1, state] of Object.entries(model.states)) {
+          for (const [_1, state] of Object.entries(modelMeta.states)) {
             for (const [_2, field] of Object.entries(state.fields)) {
               // Keep track of which fields have already been added
               // to avoid duplicates when some states share fields.

@@ -1,4 +1,10 @@
-import { ModelMeta, StateMeta, FieldMeta, TransitionMeta } from "./meta";
+import {
+  ProjectMeta,
+  ModelMeta,
+  StateMeta,
+  FieldMeta,
+  TransitionMeta,
+} from "./meta";
 import { ArrayElementType, QueryParams } from "./types";
 import { Db, TestDb, SqliteDb } from "./db";
 import Consumer, { Task } from "./consumer";
@@ -17,6 +23,7 @@ export {
   Db,
   TestDb,
   SqliteDb,
+  ProjectMeta,
   ModelMeta,
   StateMeta,
   FieldMeta,

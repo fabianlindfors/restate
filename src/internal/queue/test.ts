@@ -1,6 +1,6 @@
 import Project from "../project";
 import { Callback } from "../db/TestDb";
-import { ModelMeta, TransitionMeta } from "../meta";
+import { ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
 import Transition from "../transition";
 import { createTasksForTransition, runTask } from "./common";
 import { Db } from "../db";
@@ -9,7 +9,7 @@ export function createTestConsumerRunner(
   db: Db,
   project: Project,
   client: any,
-  modelMetas: ModelMeta[]
+  projectMeta: ProjectMeta
 ): Callback {
   return async (
     _modelMeta: ModelMeta,
@@ -19,13 +19,13 @@ export function createTestConsumerRunner(
   ): Promise<void> => {
     const tasks = await createTasksForTransition(
       db,
-      modelMetas,
+      projectMeta,
       project,
       transition
     );
 
     await Promise.all(
-      tasks.map((task) => runTask(db, modelMetas, project, client, task))
+      tasks.map((task) => runTask(db, projectMeta, project, client, task))
     );
   };
 }

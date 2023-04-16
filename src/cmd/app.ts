@@ -98,7 +98,7 @@ export default class App {
 
     // Set up client using the imported config
     const generatedModule = await loadGeneratedModule();
-    const db = dbFromConfig(generatedModule.__ModelMetas, config.database);
+    const db = dbFromConfig(generatedModule.__ProjectMeta, config.database);
     const Client = generatedModule.RestateClient;
     const client = new Client(project, db);
     await client.setup();
@@ -131,7 +131,7 @@ export default class App {
 
     // Set up client using the imported config
     const generatedModule = await loadGeneratedModule();
-    const db = dbFromConfig(generatedModule.__ModelMetas, config.database);
+    const db = dbFromConfig(generatedModule.__ProjectMeta, config.database);
     const Client = generatedModule.RestateClient;
     const client = new Client(project, db);
     await client.setup();

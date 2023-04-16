@@ -27,7 +27,7 @@ export function generateDbFile(models: Model[]): StatementStructures[] {
     ...imports(models),
     ...reexports(models),
     transitonImplType(models),
-    modelMetasConstant(models),
+    projectMetaConstant(models),
     projectType(),
     testClientFunction(),
     clientClass(models),
@@ -76,18 +76,20 @@ function transitonImplType(models: Model[]): InterfaceDeclarationStructure {
   };
 }
 
-function modelMetasConstant(models: Model[]): VariableStatementStructure {
+function projectMetaConstant(models: Model[]): VariableStatementStructure {
+  const modelMetasConstant =
+    "[" +
+    models.map((model) => `${model.pascalCaseName()}.__Meta`).join(", ") +
+    "]";
+
   return {
     kind: StructureKind.VariableStatement,
     declarationKind: VariableDeclarationKind.Const,
     declarations: [
       {
-        name: "__ModelMetas",
-        type: "__Internal.ModelMeta[]",
-        initializer:
-          "[" +
-          models.map((model) => `${model.pascalCaseName()}.__Meta`).join(", ") +
-          "]",
+        name: "__ProjectMeta",
+        type: "__Internal.ProjectMeta",
+        initializer: `new __Internal.ProjectMeta(${modelMetasConstant});`,
       },
     ],
     isExported: true,
@@ -130,11 +132,11 @@ function testClientFunction(): FunctionDeclarationStructure {
     ],
     returnType: "Promise<RestateClient>",
     statements: [
-      "const db = new __Internal.TestDb(__ModelMetas)",
+      "const db = new __Internal.TestDb(__ProjectMeta)",
       "await db.setup()",
       "await db.migrate()",
       "const client = new RestateClient(project, db)",
-      "const consumerCallback = __Internal.createTestConsumerRunner(db, project, client, __ModelMetas)",
+      "const consumerCallback = __Internal.createTestConsumerRunner(db, project, client, __ProjectMeta)",
       "db.setTransitionCallback(consumerCallback)",
       "return client",
     ],

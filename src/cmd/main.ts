@@ -8,7 +8,7 @@ export default class Main {
     const generatedModule = await loadGeneratedModule();
     const config = loadConfig();
 
-    const db = dbFromConfig(generatedModule.__ModelMetas, config.database);
+    const db = dbFromConfig(generatedModule.__ProjectMeta, config.database);
     const client = new generatedModule.RestateClient(this.project, db);
     await client.setup();
 

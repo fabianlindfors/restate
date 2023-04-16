@@ -1,5 +1,5 @@
 import knex from "knex";
-import { ModelMeta, TransitionMeta } from "../meta";
+import { ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
 import BaseObject from "../object";
 import Transition from "../transition";
 import SqliteDb from "./SqliteDb";
@@ -14,7 +14,7 @@ export type Callback = (
 export default class TestDb extends SqliteDb {
   private callback?: Callback;
 
-  constructor(models: ModelMeta[]) {
+  constructor(projectMeta: ProjectMeta) {
     const knexDb = knex({
       client: "sqlite",
       connection: {
@@ -23,7 +23,7 @@ export default class TestDb extends SqliteDb {
       useNullAsDefault: true,
     });
 
-    super(models, knexDb);
+    super(projectMeta, knexDb);
   }
 
   setTransitionCallback(callback: Callback) {

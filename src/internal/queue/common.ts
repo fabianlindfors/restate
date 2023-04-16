@@ -2,19 +2,20 @@ import { toSnakeCase } from "js-convert-case";
 import Consumer, { Task, TaskState } from "../consumer";
 import { Db } from "../db";
 import { generateConsumerTaskId } from "../id";
-import { ModelMeta, TransitionMeta } from "../meta";
+import { ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
 import Transition from "../transition";
 
 export async function createTasksForTransition(
   db: Db,
-  modelMetas: ModelMeta[],
+  projectMeta: ProjectMeta,
   project: any,
   transition: Transition<any, string>
 ): Promise<Task[]> {
-  const [modelMeta, transitionMeta] = getMetaForTransition(
-    modelMetas,
-    transition
+  const modelMeta = projectMeta.getModelMeta(transition.model);
+  const transitionMeta = Object.values(modelMeta.transitions).find(
+    (transitionMeta) => transitionMeta.name == transition.type
   );
+
   const allConsumers = project.consumers;
   if (allConsumers === undefined) {
     return;
@@ -51,14 +52,14 @@ export async function createTasksForTransition(
 
 export async function runTask(
   db: Db,
-  modelMetas: ModelMeta[],
+  projectMeta: ProjectMeta,
   project: any,
   client: any,
   task: Task
 ): Promise<Task> {
   const consumer = getConsumerByName(project, task.consumer);
   const transition = await db.getTransitionById(task.transitionId);
-  const [modelMeta, _] = getMetaForTransition(modelMetas, transition);
+  const modelMeta = projectMeta.getModelMeta(transition.model);
   const object = await db.getById(modelMeta, transition.objectId);
 
   const taskSpecificClient = client.withTriggeredBy(task.id);
@@ -71,27 +72,6 @@ export async function runTask(
   await db.updateTask(updatedTask);
 
   return updatedTask;
-}
-
-function getMetaForTransition(
-  modelMetas: ModelMeta[],
-  transition: Transition<any, string>
-): [ModelMeta, TransitionMeta] {
-  const modelMeta = modelMetas.find((meta) => meta.name == transition.model);
-  if (modelMeta === undefined) {
-    throw new Error(`couldn't find model meta with name ${transition.model}`);
-  }
-
-  const transitionMeta = Object.values(modelMeta.transitions).find(
-    (transitionMeta) => transitionMeta.name == transition.type
-  );
-  if (transitionMeta === undefined) {
-    throw new Error(
-      `couldn't find transition meta with name ${transition.type}`
-    );
-  }
-
-  return [modelMeta, transitionMeta];
 }
 
 function getConsumerByName(project: any, name: string): Consumer {

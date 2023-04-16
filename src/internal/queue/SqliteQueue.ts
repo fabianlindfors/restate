@@ -1,6 +1,6 @@
 import Project from "../project";
 import SqliteDb from "../db/SqliteDb";
-import { ModelMeta } from "../meta";
+import { ModelMeta, ProjectMeta } from "../meta";
 import { Queue } from ".";
 import { createTasksForTransition, runTask } from "./common";
 
@@ -11,7 +11,7 @@ export class SqliteQueue implements Queue {
   private lastSeqId: number | undefined;
 
   constructor(
-    private modelMetas: ModelMeta[],
+    private projectMeta: ProjectMeta,
     private db: SqliteDb,
     private client: any,
     private project: Project
@@ -29,7 +29,7 @@ export class SqliteQueue implements Queue {
     for (const transition of newTransitions) {
       await createTasksForTransition(
         this.db,
-        this.modelMetas,
+        this.projectMeta,
         this.project,
         transition
       );
@@ -50,7 +50,7 @@ export class SqliteQueue implements Queue {
     const tasks = await this.db.getUnprocessedTasks();
     await Promise.all(
       tasks.map((task) =>
-        runTask(this.db, this.modelMetas, this.project, this.client, task)
+        runTask(this.db, this.projectMeta, this.project, this.client, task)
       )
     );
 

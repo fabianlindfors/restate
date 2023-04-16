@@ -3,7 +3,7 @@ import { Pgoutput, PgoutputPlugin } from "pg-logical-replication";
 import { Queue } from ".";
 import Consumer, { Task } from "../consumer";
 import { PostgresDb } from "../db";
-import { ModelMeta, TransitionMeta } from "../meta";
+import { ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
 import Project from "../project";
 import Transition from "../transition";
 import Logger from "../../cmd/logger";
@@ -26,12 +26,12 @@ export class PostgresQueue implements Queue {
 
   constructor(
     private logger: Logger,
-    private modelMetas: ModelMeta[],
+    private projectMeta: ProjectMeta,
     private db: PostgresDb,
     private client: any,
     private project: Project
   ) {
-    this.enqueuer = new TaskEnqueuer(logger, modelMetas, db, project);
+    this.enqueuer = new TaskEnqueuer(logger, projectMeta, db, project);
   }
 
   async run(): Promise<void> {
@@ -57,7 +57,7 @@ export class PostgresQueue implements Queue {
 
       await Promise.all(
         tasks.map((task) =>
-          runTask(txn, this.modelMetas, this.project, this.client, task)
+          runTask(txn, this.projectMeta, this.project, this.client, task)
         )
       );
     });
@@ -81,7 +81,7 @@ class TaskEnqueuer {
 
   constructor(
     private logger: Logger,
-    private modelMetas: ModelMeta[],
+    private projectMeta: ProjectMeta,
     private db: PostgresDb,
     private project: Project
   ) {
@@ -237,7 +237,7 @@ class TaskEnqueuer {
   private async createTasksForTransition(transition: Transition<any, string>) {
     const tasks = await createTasksForTransition(
       this.db,
-      this.modelMetas,
+      this.projectMeta,
       this.project,
       transition
     );

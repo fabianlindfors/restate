@@ -8,7 +8,7 @@ import Logger from "./logger";
 import { existsSync } from "fs";
 
 export async function loadGeneratedModule(): Promise<{
-  __ModelMetas: any[];
+  __ProjectMeta: any;
   RestateClient: any;
 }> {
   const generatedPath = "../generated";
@@ -24,28 +24,28 @@ export async function loadProject(): Promise<any> {
   return (await import(configPath)).default;
 }
 
-export function dbFromConfig(modelMetas: any[], config: DatabaseConfig): Db {
+export function dbFromConfig(projectMeta: any, config: DatabaseConfig): Db {
   switch (config.type) {
     case "sqlite":
-      return SqliteDb.fromConfig(modelMetas, config);
+      return SqliteDb.fromConfig(projectMeta, config);
     case "postgres":
-      return PostgresDb.fromConfig(modelMetas, config);
+      return PostgresDb.fromConfig(projectMeta, config);
   }
 }
 
 export function queueFromDb(
   logger: Logger,
-  modelMetas: any[],
+  projectMeta: any,
   db: Db,
   client: any,
   project: Project
 ): Queue {
   if (db instanceof SqliteDb) {
-    return new SqliteQueue(modelMetas, db, client, project);
+    return new SqliteQueue(projectMeta, db, client, project);
   }
 
   if (db instanceof PostgresDb) {
-    return new PostgresQueue(logger, modelMetas, db, client, project);
+    return new PostgresQueue(logger, projectMeta, db, client, project);
   }
 
   throw new Error("couldn't determine what queue to create for database");
