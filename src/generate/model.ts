@@ -221,8 +221,7 @@ function transitionTypes(
         },
         {
           name: "note",
-          type: "string",
-          hasQuestionToken: true,
+          type: "string | null",
         },
         {
           name: "triggeredBy",
