@@ -130,16 +130,20 @@ function transitionEnum(model: Model): EnumDeclarationStructure {
 }
 
 function stateTypes(model: Model): InterfaceDeclarationStructure[] {
-  return model.getStates().map((state) => {
-    const properties = Array.from(state.getFields().values()).map((field) => {
-      return {
-        name: field.camelCaseName(),
-        type: field.getType().getTypescriptType(),
-        hasQuestionToken: field.getType().canBeUndefined(),
-      };
-    });
+  return model.getStates().flatMap((state) => {
+    const modelTypeProperties = Array.from(state.getFields().values()).map(
+      (field) => {
+        const typeScriptType = field.getType().getTypescriptType();
+        return {
+          name: field.camelCaseName(),
+          type: field.getType().canBeUndefined()
+            ? `${typeScriptType} | null`
+            : typeScriptType,
+        };
+      }
+    );
 
-    return {
+    const modelType: InterfaceDeclarationStructure = {
       name: state.pascalCaseName(),
       kind: StructureKind.Interface,
       properties: [
@@ -151,10 +155,38 @@ function stateTypes(model: Model): InterfaceDeclarationStructure[] {
           name: "state",
           type: `State.${state.pascalCaseName()}`,
         },
-        ...properties,
+        ...modelTypeProperties,
       ],
       isExported: true,
     };
+
+    const modelDataTypeProperties = Array.from(state.getFields().values()).map(
+      (field) => {
+        const typeScriptType = field.getType().getTypescriptType();
+        return {
+          name: field.camelCaseName(),
+          type: field.getType().canBeUndefined()
+            ? `${typeScriptType} | null`
+            : typeScriptType,
+          hasQuestionToken: field.getType().canBeUndefined(),
+        };
+      }
+    );
+
+    const modelDataType: InterfaceDeclarationStructure = {
+      name: `${state.pascalCaseName()}Data`,
+      kind: StructureKind.Interface,
+      properties: [
+        {
+          name: "state",
+          type: `State.${state.pascalCaseName()}`,
+        },
+        ...modelDataTypeProperties,
+      ],
+      isExported: true,
+    };
+
+    return [modelType, modelDataType];
   });
 }
 
@@ -268,7 +300,7 @@ function transitionMethodSignature(
     kind: StructureKind.MethodSignature,
     name: transition.camelCaseName(),
     parameters: parameters,
-    returnType: `Promise<Omit<${returnType}, "id">>`,
+    returnType: `Promise<${returnType}Data>`,
   };
 }
 
