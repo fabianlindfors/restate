@@ -2,7 +2,7 @@ import { toSnakeCase } from "js-convert-case";
 import Consumer, { Task, TaskState } from "../consumer";
 import { Db } from "../db";
 import { generateConsumerTaskId } from "../id";
-import { ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
+import { ProjectMeta } from "../meta";
 import Transition from "../transition";
 
 export async function createTasksForTransition(
@@ -12,9 +12,7 @@ export async function createTasksForTransition(
   transition: Transition<any, string>
 ): Promise<Task[]> {
   const modelMeta = projectMeta.getModelMeta(transition.model);
-  const transitionMeta = Object.values(modelMeta.transitions).find(
-    (transitionMeta) => transitionMeta.name == transition.type
-  );
+  const transitionMeta = modelMeta.getTransitionMeta(transition.type);
 
   const allConsumers = project.consumers;
   if (allConsumers === undefined) {
@@ -24,8 +22,8 @@ export async function createTasksForTransition(
   // Find all consumers which match this transition
   const consumers = allConsumers.filter(
     (consumer) =>
-      consumer.model.name == modelMeta.name &&
-      consumer.transitions.includes(toSnakeCase(transitionMeta.name))
+      consumer.model.name == modelMeta.pascalCaseName() &&
+      consumer.transitions.includes(transitionMeta.snakeCaseName())
   );
 
   let tasks = [];

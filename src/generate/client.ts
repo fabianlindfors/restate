@@ -527,12 +527,12 @@ function modelDbClassTransitionMethod(
     statements.push(
       `const fn = async (object: any, transition: any) => await this.transitionImpls.${transition.camelCaseName()}(this.parent.withTriggeredBy(transition.id), object, transition);`,
       "const id = typeof params.object == 'string' ? params.object : params.object.id;",
-      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.transitions.${transition.pascalCaseName()}, params, id, fn, this.parent.__triggeredBy);`
+      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.getTransitionMeta("${transition.pascalCaseName()}"), params, id, fn, this.parent.__triggeredBy);`
     );
   } else {
     statements.push(
       `const fn = async (object: any, transition: any) => await this.transitionImpls.${transition.camelCaseName()}(this.parent.withTriggeredBy(transition.id), transition);`,
-      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.transitions.${transition.pascalCaseName()}, params, undefined, fn, this.parent.__triggeredBy);`
+      `const { updatedObject, updatedTransition } = await this.applyTransition(${model.pascalCaseName()}.__Meta.getTransitionMeta("${transition.pascalCaseName()}"), params, undefined, fn, this.parent.__triggeredBy);`
     );
   }
 

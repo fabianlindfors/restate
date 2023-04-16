@@ -78,8 +78,8 @@ export abstract class BaseTransitionsClient {
     // Set up the transition object
     const transition: Transition<any, string> = {
       id: generateTransactionId(),
-      model: this.modelMeta.name,
-      type: transitionMeta.name,
+      model: this.modelMeta.pascalCaseName(),
+      type: transitionMeta.pascalCaseNmae(),
       objectId: objectId,
       data: transitionParams.data,
       note: transitionParams.note,
@@ -94,11 +94,12 @@ export abstract class BaseTransitionsClient {
     transitionedObject.id = objectId;
 
     // Validate field values on object
-    const camelCaseState = toPascalCase(transitionedObject.state);
-    const stateMeta = this.modelMeta.states[camelCaseState];
-    for (const field of Object.values(stateMeta.fields)) {
+    const stateMeta = this.modelMeta.getStateMetaBySerializedName(
+      transitionedObject.state
+    );
+    for (const field of stateMeta.allFieldMetas()) {
       const dataType = field.type;
-      const value = (transitionedObject as any)[field.name];
+      const value = (transitionedObject as any)[field.camelCaseName()];
       dataType.validate(value);
     }
 

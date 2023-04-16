@@ -412,78 +412,61 @@ function queryTypes(model: Model): StatementStructures[] {
 }
 
 function modelMeta(model: Model): VariableStatementStructure {
-  let statesObject: { [key: string]: WriterFunction } = {};
-  for (const state of model.getStates()) {
-    let fieldsObject: { [key: string]: WriterFunction } = {};
+  const statesInitializer =
+    "[" +
+    model
+      .getStates()
+      .map((state) => {
+        const fieldsInitializer =
+          "[" + state.getFields().map(fieldMetaInitializer).join(", ") + "]";
+        return `new __Internal.StateMeta("${state.pascalCaseName()}", ${fieldsInitializer})`;
+      })
+      .join(", ") +
+    "]";
 
-    for (const field of state.getFields()) {
-      fieldsObject[field.camelCaseName()] = Writers.object({
-        name: `"${field.camelCaseName()}"`,
-        type: `${field.getType().initializer()}`,
-      });
-    }
+  const transitionsInitializer =
+    "[" +
+    model
+      .getTransitions()
+      .map((transition) => {
+        const fieldsConstant =
+          "[" +
+          transition.getFields().map(fieldMetaInitializer).join(", ") +
+          "]";
 
-    statesObject[state.pascalCaseName()] = Writers.object({
-      name: `"${state.pascalCaseName()}"`,
-      fields: Writers.object(fieldsObject),
-    });
-  }
+        let fromStatesDefinition: string = "undefined";
+        const fromStates = transition.getFromStates();
+        if (fromStates) {
+          let fromStatesExpanded: State[] = [];
+          if (fromStates == "*") {
+            fromStatesExpanded = model.getStates();
+          } else {
+            fromStatesExpanded = fromStates;
+          }
+          const fromStatesJoined = fromStatesExpanded
+            .map((state) => `"${state.pascalCaseName()}"`)
+            .join();
+          fromStatesDefinition = `[${fromStatesJoined}]`;
+        }
 
-  let transitionsObject: { [key: string]: WriterFunction } = {};
-  for (const transition of model.getTransitions()) {
-    let fieldsObject: { [key: string]: WriterFunction } = {};
+        let toStatesExpanded: State[] = [];
+        const toStates = transition.getToStates();
+        if (toStates == "*") {
+          toStatesExpanded = model.getStates();
+        } else {
+          toStatesExpanded = toStates;
+        }
+        const toStatesJoined = toStatesExpanded
+          .map((state) => `"${state.pascalCaseName()}"`)
+          .join();
+        const toStatesDefinition = `[${toStatesJoined}]`;
 
-    for (const field of transition.getFields()) {
-      fieldsObject[field.camelCaseName()] = Writers.object({
-        name: `"${field.camelCaseName()}"`,
-        type: `${field.getType().initializer()}`,
-      });
-    }
+        return `new __Internal.TransitionMeta("${transition.pascalCaseName()}", ${fieldsConstant}, ${fromStatesDefinition}, ${toStatesDefinition})`;
+      })
+      .join(", ") +
+    "]";
 
-    let fromStatesDefinition: string = "undefined";
-    const fromStates = transition.getFromStates();
-    if (fromStates) {
-      let fromStatesExpanded: State[] = [];
-      if (fromStates == "*") {
-        fromStatesExpanded = model.getStates();
-      } else {
-        fromStatesExpanded = fromStates;
-      }
-      const fromStatesJoined = fromStatesExpanded
-        .map((state) => `"${state.pascalCaseName()}"`)
-        .join();
-      fromStatesDefinition = `[${fromStatesJoined}]`;
-    }
-
-    let toStatesExpanded: State[] = [];
-    const toStates = transition.getToStates();
-    if (toStates == "*") {
-      toStatesExpanded = model.getStates();
-    } else {
-      toStatesExpanded = toStates;
-    }
-    const toStatesJoined = toStatesExpanded
-      .map((state) => `"${state.pascalCaseName()}"`)
-      .join();
-    const toStatesDefinition = `[${toStatesJoined}]`;
-
-    transitionsObject[transition.pascalCaseName()] = Writers.object({
-      name: `"${transition.pascalCaseName()}"`,
-      fields: Writers.object(fieldsObject),
-      fromStates: fromStatesDefinition,
-      toStates: toStatesDefinition,
-    });
-  }
-
-  let metaObject: any = {
-    name: `"${model.pascalCaseName()}"`,
-    states: Writers.object(statesObject),
-    transitions: Writers.object(transitionsObject),
-  };
-
-  if (model.getPrefix()) {
-    metaObject.prefix = `"${model.getPrefix()}"`;
-  }
+  const metaObjectInitializer = `new __Internal.ModelMeta("${model.pascalCaseName()}", "${model.getPrefix()}", ${statesInitializer}, ${transitionsInitializer})`;
 
   return {
     kind: StructureKind.VariableStatement,
@@ -492,11 +475,17 @@ function modelMeta(model: Model): VariableStatementStructure {
       {
         name: `__Meta`,
         type: "__Internal.ModelMeta",
-        initializer: Writers.object(metaObject),
+        initializer: metaObjectInitializer,
       },
     ],
     isExported: true,
   };
+}
+
+function fieldMetaInitializer(field: Field): string {
+  return `new __Internal.FieldMeta("${field.camelCaseName()}", ${field
+    .getType()
+    .initializer()})`;
 }
 
 function createConsumerFunction(model: Model): FunctionDeclarationStructure {

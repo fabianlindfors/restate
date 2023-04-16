@@ -1,3 +1,4 @@
+import { toPascalCase, toSnakeCase } from "js-convert-case";
 import { DataType } from "./dataTypes";
 import Transition from "./transition";
 
@@ -9,34 +10,88 @@ export class ProjectMeta {
   }
 
   getModelMeta(name: string): ModelMeta {
-    return this.modelMetas.find((meta) => meta.name === name);
+    return this.modelMetas.find((meta) => meta.pascalCaseName() === name);
   }
 }
 
-export type ModelMeta = {
-  // Name in PascalCase
-  name: string;
-  states: { [key: string]: StateMeta };
-  transitions: { [key: string]: TransitionMeta };
-  prefix: string;
-};
+export class ModelMeta {
+  constructor(
+    // PascalCase name
+    private name: string,
+    public prefix: string,
+    private states: StateMeta[],
+    private transitions: TransitionMeta[]
+  ) {}
 
-export type StateMeta = {
-  // Name in PascalCase
-  name: string;
-  fields: { [key: string]: FieldMeta };
-};
+  pascalCaseName(): string {
+    return this.name;
+  }
 
-export type TransitionMeta = {
-  // Name in camelCase
-  name: string;
-  fields: { [key: string]: FieldMeta };
-  fromStates?: string[];
-  toStates: string[];
-};
+  snakeCaseName(): string {
+    return toSnakeCase(this.name);
+  }
 
-export type FieldMeta = {
-  // name in camelCase
-  name: string;
-  type: DataType;
-};
+  allStateMetas(): StateMeta[] {
+    return this.states;
+  }
+
+  getStateMeta(name: string): StateMeta {
+    return this.states.find((meta) => meta.pascalCaseNmae() === name);
+  }
+
+  getStateMetaBySerializedName(serializedName: string): StateMeta {
+    const pascalCaseStateName = toPascalCase(serializedName);
+    return this.states.find(
+      (meta) => meta.pascalCaseNmae() === pascalCaseStateName
+    );
+  }
+
+  allTransitionMetas(): TransitionMeta[] {
+    return this.transitions;
+  }
+
+  getTransitionMeta(name: string): TransitionMeta {
+    return this.transitions.find((meta) => meta.pascalCaseNmae() === name);
+  }
+}
+
+export class StateMeta {
+  constructor(private name: string, private fields: FieldMeta[]) {}
+
+  pascalCaseNmae(): string {
+    return this.name;
+  }
+
+  allFieldMetas(): FieldMeta[] {
+    return this.fields;
+  }
+}
+
+export class TransitionMeta {
+  constructor(
+    private name: string,
+    private fields: FieldMeta[],
+    public fromStates: string[] | undefined,
+    public toStates: string[]
+  ) {}
+
+  pascalCaseNmae(): string {
+    return this.name;
+  }
+
+  snakeCaseName(): string {
+    return toSnakeCase(this.name);
+  }
+}
+
+export class FieldMeta {
+  constructor(private name: string, public type: DataType) {}
+
+  camelCaseName(): string {
+    return this.name;
+  }
+
+  snakeCaseName(): string {
+    return toSnakeCase(this.name);
+  }
+}

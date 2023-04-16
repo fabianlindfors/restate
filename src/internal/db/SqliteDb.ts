@@ -81,14 +81,14 @@ export default class SqliteDb implements Db {
           table.text("id").primary();
           table.text("state").notNullable();
 
-          for (const [_1, state] of Object.entries(modelMeta.states)) {
-            for (const [_2, field] of Object.entries(state.fields)) {
+          for (const state of modelMeta.allStateMetas()) {
+            for (const field of state.allFieldMetas()) {
               // Keep track of which fields have already been added
               // to avoid duplicates when some states share fields.
-              if (addedFields.has(field.name)) {
+              if (addedFields.has(field.camelCaseName())) {
                 continue;
               }
-              addedFields.add(field.name);
+              addedFields.add(field.camelCaseName());
 
               const type = this.typeToSqliteType(field.type);
               const builder = table.specificType(columnName(field), type);
@@ -126,7 +126,9 @@ export default class SqliteDb implements Db {
     transition: Transition<any, string>,
     object: BaseObject
   ): Promise<void> {
-    const targetStateMeta = modelMeta.states[toPascalCase(object.state)];
+    const targetStateMeta = modelMeta.getStateMetaBySerializedName(
+      object.state
+    );
 
     // If we don't have from states, then this is an initializing transition
     // and we should be inserting a new row.
@@ -138,8 +140,8 @@ export default class SqliteDb implements Db {
     };
 
     // Populate object data based on model fields
-    for (const [_1, field] of Object.entries(targetStateMeta.fields)) {
-      data[columnName(field)] = (object as any)[field.name];
+    for (const field of targetStateMeta.allFieldMetas()) {
+      data[columnName(field)] = (object as any)[field.camelCaseName()];
     }
 
     // Insert or update object
@@ -178,16 +180,16 @@ export default class SqliteDb implements Db {
 
     const row = rows[0];
     const state = row.state;
-    const stateMeta = model.states[toPascalCase(state)];
+    const stateMeta = model.getStateMetaBySerializedName(state);
 
     // Convert row to object
     const data: { [key: string]: any } = {
       id: row.id,
       state,
     };
-    for (const [_1, field] of Object.entries(stateMeta.fields)) {
+    for (const field of stateMeta.allFieldMetas()) {
       const value = row[columnName(field)];
-      data[field.name] = value;
+      data[field.camelCaseName()] = value;
     }
 
     return data;
@@ -218,15 +220,15 @@ export default class SqliteDb implements Db {
     const rows = await query.select("*");
     const results = rows.map((row) => {
       const state = row.state;
-      const stateMeta = model.states[toPascalCase(state)];
+      const stateMeta = model.getStateMetaBySerializedName(state);
 
       const data: { [key: string]: any } = {
         id: row.id,
         state,
       };
-      for (const [_1, field] of Object.entries(stateMeta.fields)) {
+      for (const field of stateMeta.allFieldMetas()) {
         const value = row[columnName(field)];
-        data[field.name] = value;
+        data[field.camelCaseName()] = value;
       }
 
       return data;
@@ -367,16 +369,16 @@ function createTransition(
   return {
     id: generateTransactionId(),
     objectId,
-    model: model.name,
-    type: transition.name,
+    model: model.pascalCaseName(),
+    type: transition.pascalCaseNmae(),
     data,
   };
 }
 
 function tableName(model: ModelMeta): string {
-  return toSnakeCase(model.name);
+  return model.snakeCaseName();
 }
 
 function columnName(field: FieldMeta): string {
-  return toSnakeCase(field.name);
+  return field.snakeCaseName();
 }
