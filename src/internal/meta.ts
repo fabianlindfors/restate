@@ -1,6 +1,6 @@
 import { toPascalCase, toSnakeCase } from "js-convert-case";
 import { DataType } from "./dataTypes";
-import Transition from "./transition";
+import pluralize from "pluralize";
 
 export class ProjectMeta {
   constructor(private modelMetas: ModelMeta[]) {}
@@ -27,8 +27,16 @@ export class ModelMeta {
     return this.name;
   }
 
+  pluralPascalCaseName(): string {
+    return pluralize(this.name);
+  }
+
   snakeCaseName(): string {
     return toSnakeCase(this.name);
+  }
+
+  pluralSnakeCaseName(): string {
+    return pluralize(toSnakeCase(this.name));
   }
 
   allStateMetas(): StateMeta[] {

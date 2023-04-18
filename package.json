@@ -16,6 +16,7 @@
     "knex": "^2.3.0",
     "pg": "^8.9.0",
     "pg-logical-replication": "^2.0.3",
+    "pluralize": "^8.0.0",
     "prepend-transform": "^0.0.1019",
     "sqlite3": "^5.1.4",
     "ts-morph": "^14.0.0",

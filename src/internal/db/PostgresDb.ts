@@ -323,7 +323,7 @@ export default class PostgresDb implements Db {
 }
 
 function tableName(model: ModelMeta): string {
-  return model.snakeCaseName();
+  return model.pluralSnakeCaseName();
 }
 
 function columnName(field: FieldMeta): string {
