@@ -2,13 +2,16 @@ import { FieldMeta, ModelMeta, ProjectMeta, TransitionMeta } from "../meta";
 import Transition from "../transition";
 import { generateTransactionId } from "../id";
 import knex, { Knex } from "knex";
-import { toPascalCase, toSnakeCase } from "js-convert-case";
+import { toSnakeCase } from "js-convert-case";
 import { Db } from ".";
 import { Database } from "sqlite3";
 import { Task, TaskState } from "../consumer";
 import BaseObject from "../object";
 import { SqliteDatabaseConfig } from "../config";
 import { Bool, DataType, Decimal, Int, Optional, String } from "../dataTypes";
+
+const TRANSITIONS_TABLE = "transitions";
+const TASKS_TABLE = "tasks";
 
 type TransitionWithSeqId = Transition<any, string> & { seqId: number };
 
@@ -47,8 +50,8 @@ export default class SqliteDb implements Db {
 
   async setup() {
     // Create transitions table
-    if (!(await this.db.schema.hasTable("transitions"))) {
-      await this.db.schema.createTable("transitions", (table) => {
+    if (!(await this.db.schema.hasTable(TRANSITIONS_TABLE))) {
+      await this.db.schema.createTable(TRANSITIONS_TABLE, (table) => {
         table.increments("seq_id");
         table.text("id");
         table.text("model").notNullable();
@@ -61,9 +64,9 @@ export default class SqliteDb implements Db {
       });
     }
 
-    // Create consumer_tasks table
-    if (!(await this.db.schema.hasTable("consumer_tasks"))) {
-      await this.db.schema.createTable("consumer_tasks", (table) => {
+    // Create tasks table
+    if (!(await this.db.schema.hasTable(TASKS_TABLE))) {
+      await this.db.schema.createTable(TASKS_TABLE, (table) => {
         table.text("id");
         table.text("transition_id").notNullable();
         table.text("consumer").notNullable();
@@ -158,7 +161,7 @@ export default class SqliteDb implements Db {
   }
 
   private async insertTransition(transition: Transition<any, string>) {
-    await this.db("transitions").insert({
+    await this.db(TRANSITIONS_TABLE).insert({
       id: transition.id,
       object_id: transition.objectId,
       model: transition.model,
@@ -239,7 +242,7 @@ export default class SqliteDb implements Db {
 
   async getLatestTransitionSeqId(): Promise<number | undefined> {
     const row = await this.db
-      .table("transitions")
+      .table(TRANSITIONS_TABLE)
       .orderBy("id", "desc")
       .limit(1)
       .first("seq_id");
@@ -253,7 +256,7 @@ export default class SqliteDb implements Db {
   async getTransitions(
     afterSeqId: number | undefined
   ): Promise<TransitionWithSeqId[]> {
-    let query = this.db.table("transitions");
+    let query = this.db.table(TRANSITIONS_TABLE);
     if (afterSeqId) {
       query = query.where("seq_id", ">", afterSeqId);
     }
@@ -273,7 +276,10 @@ export default class SqliteDb implements Db {
   async getTransitionById(
     id: string
   ): Promise<Transition<any, string> | undefined> {
-    const rows = await this.db.table("transitions").where("id", id).select("*");
+    const rows = await this.db
+      .table(TRANSITIONS_TABLE)
+      .where("id", id)
+      .select("*");
     if (rows.length == 0) {
       return null;
     }
@@ -294,7 +300,7 @@ export default class SqliteDb implements Db {
     objectId: string
   ): Promise<Transition<any, string>[]> {
     const rows = await this.db
-      .table("transitions")
+      .table(TRANSITIONS_TABLE)
       .where("object_id", objectId)
       .orderBy("id", "desc")
       .select("*");
@@ -311,7 +317,7 @@ export default class SqliteDb implements Db {
   }
 
   async insertTask(task: Task): Promise<void> {
-    await this.db.table("consumer_tasks").insert({
+    await this.db.table(TASKS_TABLE).insert({
       id: task.id,
       transition_id: task.transitionId,
       consumer: task.consumer,
@@ -320,14 +326,14 @@ export default class SqliteDb implements Db {
   }
 
   async updateTask(task: Task): Promise<void> {
-    await this.db.table("consumer_tasks").where("id", task.id).update({
+    await this.db.table(TASKS_TABLE).where("id", task.id).update({
       state: task.state,
     });
   }
 
   async getTasksForTransition(transitionId: string): Promise<Task[]> {
     const rows = await this.db
-      .table("consumer_tasks")
+      .table(TASKS_TABLE)
       .where("transition_id", transitionId)
       .select("*");
 
@@ -341,7 +347,7 @@ export default class SqliteDb implements Db {
 
   async getUnprocessedTasks(): Promise<Task[]> {
     const rows = await this.db
-      .table("consumer_tasks")
+      .table(TASKS_TABLE)
       .where("state", "=", TaskState.Created)
       .select("*");
 
@@ -354,7 +360,7 @@ export default class SqliteDb implements Db {
   }
 
   async setTaskProcessed(taskId: string): Promise<void> {
-    await this.db.table("consumer_tasks").where("id", "=", taskId).update({
+    await this.db.table(TASKS_TABLE).where("id", "=", taskId).update({
       state: TaskState.Completed,
     });
   }
