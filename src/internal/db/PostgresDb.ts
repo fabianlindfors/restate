@@ -6,6 +6,7 @@ import BaseObject from "../object";
 import Transition from "../transition";
 import { Task, TaskState } from "../consumer";
 import { String, Int, DataType, Decimal, Optional, Bool } from "../dataTypes";
+import { toSnakeCase } from "js-convert-case";
 
 const TRANSITIONS_TABLE = "transitions";
 const TASKS_TABLE = "tasks";
@@ -185,9 +186,44 @@ export default class PostgresDb implements Db {
 
   async query(
     model: ModelMeta,
-    filter?: { [key: string]: any }
+    where?: { [key: string]: any },
+    limit?: number
   ): Promise<any[]> {
-    return [];
+    let query = this.db.table(tableName(model));
+
+    if (where) {
+      for (const [key, value] of Object.entries(where)) {
+        const columnName = toSnakeCase(key);
+        if (Array.isArray(value)) {
+          query = query.whereIn(columnName, value);
+        } else {
+          query = query.where(columnName, value);
+        }
+      }
+    }
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const rows = await query.select("*");
+    const results = rows.map((row) => {
+      const state = row.state;
+      const stateMeta = model.getStateMetaBySerializedName(state);
+
+      const data: { [key: string]: any } = {
+        id: row.id,
+        state,
+      };
+      for (const field of stateMeta.allFieldMetas()) {
+        const value = row[columnName(field)];
+        data[field.camelCaseName()] = value;
+      }
+
+      return data;
+    });
+
+    return results;
   }
 
   async insertTask(task: Task): Promise<void> {
