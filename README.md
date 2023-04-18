@@ -403,7 +403,7 @@ Restate supports the following data types:
 | `Int`            | Integer which may be negative    | `number`                  |
 | `Decimal`        | Decimal number                   | `number`                  |
 | `Bool`           | Boolean, either true or false    | `boolean`                 |
-| `Optional[Type]` | Nullable version of another type | `Type \| undefined`       |
+| `Optional[Type]` | Nullable version of another type | `Type \| null`            |
 
 ## Client
 
@@ -500,7 +500,7 @@ const [paidOrder] = await restate.order.transition.pay({
 There are different kinds of queries depending on how many results you expect back. To find a single object by ID, you can do:
 
 ```typescript
-const order: Order.Any | undefined = await restate.order.findOne({
+const order: Order.Any | null = await restate.order.findOne({
   where: {
     id: "order_01gqjyp438r30j3g28jt78cx23",
   },
