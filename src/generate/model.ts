@@ -216,6 +216,14 @@ function transitionTypes(
           type: `Transition.${transition.pascalCaseName()}`,
         },
         {
+          name: "from",
+          type: `State | null`,
+        },
+        {
+          name: "to",
+          type: `State`,
+        },
+        {
           name: "data",
           type: `${transition.pascalCaseName()}Data`,
         },

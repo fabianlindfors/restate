@@ -3,6 +3,8 @@ export default interface Transition<Data, Type> {
   objectId: string;
   model: string;
   type: Type;
+  from: string | null;
+  to: string;
   data: Data;
   triggeredBy?: string;
   note?: string;

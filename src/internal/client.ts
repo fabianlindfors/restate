@@ -80,6 +80,8 @@ export abstract class BaseTransitionsClient {
       id: generateTransactionId(),
       model: this.modelMeta.pascalCaseName(),
       type: transitionMeta.pascalCaseNmae(),
+      from: object?.state || null,
+      to: "",
       objectId: objectId,
       data: transitionParams.data,
       note: transitionParams.note,
@@ -92,6 +94,7 @@ export abstract class BaseTransitionsClient {
       transition
     )) as BaseObject;
     transitionedObject.id = objectId;
+    transition.to = transitionedObject.state;
 
     // Validate field values on object
     const stateMeta = this.modelMeta.getStateMetaBySerializedName(

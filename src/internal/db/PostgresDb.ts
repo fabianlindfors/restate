@@ -43,6 +43,8 @@ export default class PostgresDb implements Db {
         table.text("id");
         table.text("model").notNullable();
         table.text("type").notNullable();
+        table.text("from");
+        table.text("to").notNullable();
         table.text("object_id").notNullable();
         table.jsonb("data");
         table.text("note");
@@ -152,6 +154,8 @@ export default class PostgresDb implements Db {
       object_id: transition.objectId,
       model: transition.model,
       type: transition.type,
+      from: transition.from,
+      to: transition.to,
       data: transition.data,
       note: transition.note,
       triggered_by: transition.triggeredBy,
@@ -272,6 +276,8 @@ export default class PostgresDb implements Db {
       objectId: row.object_id,
       model: row.model,
       type: row.type,
+      from: row.from,
+      to: row.to,
       data: row.data,
       note: row.note,
       triggeredBy: row.triggered_by,
@@ -292,6 +298,8 @@ export default class PostgresDb implements Db {
       objectId: row.object_id,
       model: row.model,
       type: row.type,
+      from: row.from,
+      to: row.to,
       data: row.data,
       note: row.note,
       triggeredBy: row.triggered_by,

@@ -258,6 +258,8 @@ class TaskEnqueuer {
       id: log.new.id,
       model: log.new.model,
       type: log.new.type,
+      from: log.new.from,
+      to: log.new.to,
       objectId: log.new.object_id,
       data: log.new.data,
     };
