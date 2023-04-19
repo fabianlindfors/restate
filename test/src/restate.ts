@@ -9,7 +9,12 @@ import {
 const project: RestateProject = {
   main: async function (restate: RestateClient): Promise<void> {
     await new Promise((res) => setTimeout(() => res(undefined), 1_000));
-    const user = await restate.user.transition.create();
+    const user = await restate.user.transition.createWithData({
+      data: {
+        nickname: "Nick",
+        age: 30,
+      },
+    });
     console.log("Created user", user);
   },
   transitions: {
@@ -24,6 +29,14 @@ const project: RestateProject = {
         return {
           state: User.State.Created,
           name: "Test Name",
+        };
+      },
+      async createWithData(restate: RestateClient, transition) {
+        return {
+          state: User.State.Created,
+          name: "Test Name",
+          nickname: transition.data.nickname,
+          age: transition.data.age,
         };
       },
       async createDouble(restate: RestateClient) {

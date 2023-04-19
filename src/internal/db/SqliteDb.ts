@@ -291,17 +291,7 @@ export default class SqliteDb implements Db {
     }
 
     const row = rows[0];
-    return {
-      id: row.id,
-      objectId: row.object_id,
-      model: row.model,
-      type: row.type,
-      from: row.from,
-      to: row.to,
-      data: row.data,
-      note: row.note,
-      triggeredBy: row.triggered_by,
-    };
+    return this.transitionFromRow(row);
   }
 
   async getTransitionsForObject(
@@ -313,17 +303,21 @@ export default class SqliteDb implements Db {
       .orderBy("id", "desc")
       .select("*");
 
-    return rows.map((row) => ({
+    return rows.map(this.transitionFromRow);
+  }
+
+  private transitionFromRow(row: any): Transition<any, string> {
+    return {
       id: row.id,
       objectId: row.object_id,
       model: row.model,
       type: row.type,
       from: row.from,
       to: row.to,
-      data: row.data,
+      data: row.data ? JSON.parse(row.data) : null,
       note: row.note,
       triggeredBy: row.triggered_by,
-    }));
+    };
   }
 
   async insertTask(task: Task): Promise<void> {

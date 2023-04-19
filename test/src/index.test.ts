@@ -40,6 +40,23 @@ describe("transitions", () => {
     expect(transition.to).toBe(State.Deleted);
   });
 
+  test("transition with data", async () => {
+    const [user, transition] = await client.user.transition.createWithData({
+      data: {
+        nickname: "Test Nick",
+        age: 30,
+      },
+    });
+
+    expect(user.nickname).toBe("Test Nick");
+    expect(user.age).toBe(30);
+
+    expect(transition.data).toEqual({
+      nickname: "Test Nick",
+      age: 30,
+    });
+  });
+
   test("notes", async () => {
     const [_, transition] = await client.user.transition.create({
       note: "A little helpful note for the future",
@@ -49,7 +66,12 @@ describe("transitions", () => {
   });
 
   test("get transition by ID", async () => {
-    const [_, transition] = await client.user.transition.create();
+    const [_, transition] = await client.user.transition.createWithData({
+      data: {
+        nickname: "Test Nick",
+        age: 30,
+      },
+    });
 
     const foundTransition = await client.user.getTransition(transition.id);
     expect(foundTransition.id).toBe(transition.id);
@@ -59,6 +81,10 @@ describe("transitions", () => {
     expect(foundTransition.from).toBeNull();
     expect(foundTransition.to).toBe(State.Created);
     expect(foundTransition.triggeredBy).toBe(transition.triggeredBy);
+    expect(foundTransition.data).toEqual({
+      nickname: "Test Nick",
+      age: 30,
+    });
   });
 
   test("get non-existent transition by ID", async () => {
