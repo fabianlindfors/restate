@@ -8,6 +8,7 @@ export default interface Transition<Data, Type> {
   data: Data;
   triggeredBy?: string;
   note?: string;
+  appliedAt: Date;
 }
 
 export interface TransitionParameters {

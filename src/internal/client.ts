@@ -86,6 +86,7 @@ export abstract class BaseTransitionsClient {
       data: transitionParams.data,
       note: transitionParams.note,
       triggeredBy,
+      appliedAt: new Date(),
     };
 
     // Apply the transition implementation (from the project config)

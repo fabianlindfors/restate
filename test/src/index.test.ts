@@ -85,6 +85,7 @@ describe("transitions", () => {
       nickname: "Test Nick",
       age: 30,
     });
+    expect(foundTransition.appliedAt).toEqual(transition.appliedAt);
   });
 
   test("get non-existent transition by ID", async () => {

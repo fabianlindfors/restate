@@ -262,6 +262,7 @@ class TaskEnqueuer {
       to: log.new.to,
       objectId: log.new.object_id,
       data: log.new.data,
+      appliedAt: log.new.applied_at,
     };
   }
 }

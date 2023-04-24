@@ -62,7 +62,7 @@ export default class SqliteDb implements Db {
         table.jsonb("data");
         table.text("note");
         table.text("triggered_by");
-        table.datetime("applied_at").notNullable().defaultTo(this.db.fn.now());
+        table.integer("applied_at").notNullable();
       });
     }
 
@@ -173,6 +173,7 @@ export default class SqliteDb implements Db {
       data: transition.data,
       note: transition.note,
       triggered_by: transition.triggeredBy,
+      applied_at: transition.appliedAt.getTime(),
     });
   }
 
@@ -276,6 +277,7 @@ export default class SqliteDb implements Db {
       from: row.from,
       to: row.to,
       data: row.data,
+      appliedAt: row.applied_at,
     }));
   }
 
@@ -317,6 +319,7 @@ export default class SqliteDb implements Db {
       data: row.data ? JSON.parse(row.data) : null,
       note: row.note,
       triggeredBy: row.triggered_by,
+      appliedAt: new Date(row.applied_at),
     };
   }
 

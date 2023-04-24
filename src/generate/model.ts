@@ -235,6 +235,10 @@ function transitionTypes(
           name: "triggeredBy",
           type: "string | null",
         },
+        {
+          name: "appliedAt",
+          type: "Date",
+        },
       ],
     };
 
