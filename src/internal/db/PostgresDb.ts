@@ -84,7 +84,11 @@ export default class PostgresDb implements Db {
 
               const type = this.typeToPostgresType(field.type);
               const builder = table.specificType(columnName(field), type);
-              if (!field.type.canBeUndefined()) {
+
+              if (
+                modelMeta.doesFieldAppearInAllStates(field) &&
+                !field.type.canBeNull()
+              ) {
                 builder.notNullable();
               }
             }

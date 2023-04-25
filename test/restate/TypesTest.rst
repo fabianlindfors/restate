@@ -18,3 +18,17 @@ model TypesTest {
         field boolean: Bool
     }
 }
+
+model StateWithNonNullableField {
+    prefix "swnnf"
+
+    state Created {}
+    state Finished {
+        field result: String
+    }
+
+    transition Create: Created {}
+    transition Finish: Created -> Finished {
+        field result: String
+    }
+}

@@ -136,7 +136,7 @@ function stateTypes(model: Model): InterfaceDeclarationStructure[] {
         const typeScriptType = field.getType().getTypescriptType();
         return {
           name: field.camelCaseName(),
-          type: field.getType().canBeUndefined()
+          type: field.getType().canBeNull()
             ? `${typeScriptType} | null`
             : typeScriptType,
         };
@@ -165,10 +165,10 @@ function stateTypes(model: Model): InterfaceDeclarationStructure[] {
         const typeScriptType = field.getType().getTypescriptType();
         return {
           name: field.camelCaseName(),
-          type: field.getType().canBeUndefined()
+          type: field.getType().canBeNull()
             ? `${typeScriptType} | null`
             : typeScriptType,
-          hasQuestionToken: field.getType().canBeUndefined(),
+          hasQuestionToken: field.getType().canBeNull(),
         };
       }
     );
@@ -246,7 +246,7 @@ function transitionTypes(
       return {
         name: field.camelCaseName(),
         type: field.getType().getTypescriptType(),
-        hasQuestionToken: field.getType().canBeUndefined(),
+        hasQuestionToken: field.getType().canBeNull(),
       };
     });
 

@@ -61,6 +61,20 @@ export class ModelMeta {
   getTransitionMeta(name: string): TransitionMeta {
     return this.transitions.find((meta) => meta.pascalCaseNmae() === name);
   }
+
+  doesFieldAppearInAllStates(fieldMeta: FieldMeta): boolean {
+    return (
+      this.allStateMetas().find((state) => {
+        const hasFieldWithName =
+          state
+            .allFieldMetas()
+            .find(
+              (state) => state.camelCaseName() === fieldMeta.camelCaseName()
+            ) !== undefined;
+        return !hasFieldWithName;
+      }) === undefined
+    );
+  }
 }
 
 export class StateMeta {

@@ -323,6 +323,19 @@ describe("data types", () => {
       });
     }).rejects.toThrow("not a boolean");
   });
+
+  test("handles state with non-nullable field", async () => {
+    const [object] = await client.stateWithNonNullableField.transition.create();
+    const [updatedObject] =
+      await client.stateWithNonNullableField.transition.finish({
+        object,
+        data: {
+          result: "test",
+        },
+      });
+
+    expect(updatedObject.result).toBe("test");
+  });
 });
 
 afterEach(async () => {

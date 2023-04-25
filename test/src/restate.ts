@@ -4,6 +4,7 @@ import {
   Email,
   User,
   TypesTest,
+  StateWithNonNullableField,
 } from "../../src/generated";
 
 const project: RestateProject = {
@@ -71,6 +72,27 @@ const project: RestateProject = {
       async create(restate: RestateClient, transition: TypesTest.Create) {
         return {
           state: TypesTest.State.Created,
+          ...transition.data,
+        };
+      },
+    },
+    stateWithNonNullableField: {
+      async create(
+        restate: RestateClient,
+        transition: StateWithNonNullableField.Create
+      ) {
+        return {
+          state: StateWithNonNullableField.State.Created,
+        };
+      },
+
+      async finish(
+        restate: RestateClient,
+        original: StateWithNonNullableField.Created,
+        transition: StateWithNonNullableField.Finish
+      ) {
+        return {
+          state: StateWithNonNullableField.State.Finished,
           ...transition.data,
         };
       },

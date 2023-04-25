@@ -3,7 +3,7 @@ import * as Parser from "../parser";
 export interface DataType {
   validate(value: any): void;
   getTypescriptType(): string;
-  canBeUndefined(): boolean;
+  canBeNull(): boolean;
   initializer(): string;
 }
 
@@ -36,7 +36,7 @@ export class String implements DataType {
     return "string";
   }
 
-  canBeUndefined(): boolean {
+  canBeNull(): boolean {
     return false;
   }
 
@@ -56,7 +56,7 @@ export class Int implements DataType {
     return "number";
   }
 
-  canBeUndefined(): boolean {
+  canBeNull(): boolean {
     return false;
   }
 
@@ -76,7 +76,7 @@ export class Decimal implements DataType {
     return "number";
   }
 
-  canBeUndefined(): boolean {
+  canBeNull(): boolean {
     return false;
   }
 
@@ -98,7 +98,7 @@ export class Optional implements DataType {
     return this.nestedType.getTypescriptType();
   }
 
-  canBeUndefined(): boolean {
+  canBeNull(): boolean {
     return true;
   }
 
@@ -122,7 +122,7 @@ export class Bool implements DataType {
     return "boolean";
   }
 
-  canBeUndefined(): boolean {
+  canBeNull(): boolean {
     return false;
   }
 
