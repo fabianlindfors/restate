@@ -116,7 +116,15 @@ export default class App {
     // Import the project definition dynamically from the project directory.
     // This project definition contains the transition implementations and consumers.
     process.stdout.write("🚛 Loading project... ");
-    const project = await loadProject();
+    let project;
+    try {
+      project = await loadProject();
+    } catch (e) {
+      console.log(chalk.red("\n❗️ Failed to load project:"));
+      console.log(e);
+      return;
+    }
+
     if (project === undefined) {
       console.log(
         chalk.yellow("\n⚠️  No restate.ts project definition found!")
