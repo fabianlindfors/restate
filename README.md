@@ -4,7 +4,7 @@ Restate is an experimental Typescript framework for building backends using stat
 
 The point of Restate is to help build systems which are:
 
-- **Debuggable:** All state transitions are tracked, making it easy to trace how a database object ended up in its current state and what triggered its transitions.
+- **Debuggable:** All state transitions are tracked, making it easy to trace how a database object ended up in its current state and what triggered its transitions (an admin interface is in the works).
 - **Understandable:** All business logic is encoded in state transitions and consumers, making it easy to understand the full behavior of your system. Writing decoupled code also becomes easier with consumers.
 - **Reliable:** Consumers are automatically retried on failure and change data capture is used to ensure no transitions are missed.
 
@@ -88,7 +88,7 @@ The starting point of any Restate project is the project definition, which lives
 import { RestateProject, RestateClient, Order } from "restate";
 
 const project: RestateProject = {
-  main: async function (restate: RestateClient) {
+  async main(restate: RestateClient) {
     // main is the entrypoint for your project. Here you could for example start a web server and use
     // `restate` to create and transition objects.
   },
@@ -252,7 +252,7 @@ app.post("/webhook/order_paid/:orderId", async (req, res) => {
 
   // Trigger the `Pay` transition for the order, which returns the updated object
   const [order] = await restate.order.transition.pay({
-    order: req.params.orderId,
+    object: req.params.orderId,
     data: {
       // The `Pay` transition requires us to pass the payment reference
       paymentReference: req.query.reference,
@@ -335,7 +335,7 @@ const project: RestateProject = {
 
         // Trigger `BookDelivery` transition, which will take a little while but that is completely fine!
         await restate.order.transition.bookDelivery({
-          order: order,
+          object: order,
         });
       },
     }),
