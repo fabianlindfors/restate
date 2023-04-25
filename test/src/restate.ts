@@ -8,14 +8,7 @@ import {
 
 const project: RestateProject = {
   main: async function (restate: RestateClient): Promise<void> {
-    await new Promise((res) => setTimeout(() => res(undefined), 1_000));
-    const user = await restate.user.transition.createWithData({
-      data: {
-        nickname: "Nick",
-        age: 30,
-      },
-    });
-    console.log("Created user", user);
+    // No main function needed for tests
   },
   transitions: {
     user: {
