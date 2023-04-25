@@ -112,6 +112,7 @@ function projectType(): InterfaceDeclarationStructure {
       {
         name: "consumers",
         type: "__Internal.Consumer[]",
+        hasQuestionToken: true,
       },
     ],
     isExported: true,
