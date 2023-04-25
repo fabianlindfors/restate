@@ -16,7 +16,7 @@ Does that sound interesting? Then keep reading for a walkthrough of a sample pro
 
 To get started with Restate, we are going to create a standard Node project and install Restate:
 
-```console
+```text
 $ mkdir my-first-restate-project && cd my-first-restate-project
 $ npm init
 $ npm install --save restate
@@ -24,13 +24,13 @@ $ npm install --save restate
 
 For this example, we are going to be using Express to build our API, so we need to install that as well:
 
-```console
+```text
 $ npm install --save express
 ```
 
 Restate has a built in development tool with auto-reloading, start it and keep it running in the background as you code:
 
-```console
+```text
 $ npx restate
 ```
 
