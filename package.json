@@ -1,7 +1,7 @@
 {
-  "name": "restate",
-  "version": "0.0.1",
-  "description": "",
+  "name": "restate-js",
+  "version": "0.1.0",
+  "description": "Build reliable and understandable backends with state machines",
   "main": "src/index.ts",
   "scripts": {},
   "author": "Fabian Lindfors",

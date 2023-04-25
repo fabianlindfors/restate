@@ -23,7 +23,7 @@ const welcomeMessage = chalk.bold(` _____________________
                 ||----w |
                 ||     ||
 `);
-const version = "0.0.1";
+const version = "0.1.0";
 const checkmark = chalk.green("✓");
 
 export default class App {
