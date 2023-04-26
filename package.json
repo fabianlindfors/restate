@@ -1,5 +1,5 @@
 {
-  "name": "restate-js",
+  "name": "restate-ts",
   "version": "0.1.0",
   "description": "Build reliable and understandable backends with state machines",
   "main": "src/index.ts",

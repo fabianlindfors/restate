@@ -19,7 +19,7 @@ To get started with Restate, we are going to create a standard Node project and 
 ```text
 $ mkdir my-first-restate-project && cd my-first-restate-project
 $ npm init
-$ npm install --save restate-js
+$ npm install --save restate-ts
 ```
 
 For this example, we are going to be using Express to build our API, so we need to install that as well:
@@ -80,12 +80,12 @@ model Order {
 
 ### Generating the Restate client
 
-Once we have defined our models, the dev session you have running will automatically generate types for your models as well as a client to interact with them. All of this can be imported directly from the `restate` module.
+Once we have defined our models, the dev session you have running will automatically generate types for your models as well as a client to interact with them. All of this can be imported directly from the `restate-ts` module.
 
 The starting point of any Restate project is the project definition, which lives in `src/restate.ts`. The definition we export from that file defines how our models' transitions are handled. Let's start with some placeholder values, create a `src/restate.ts` file with the following code:
 
 ```typescript
-import { RestateProject, RestateClient, Order } from "restate-js";
+import { RestateProject, RestateClient, Order } from "restate-ts";
 
 const project: RestateProject = {
   async main(restate: RestateClient) {
@@ -150,7 +150,7 @@ To interact with our backend, we are going to create a simple HTTP API using `ex
 
 ```typescript
 import express from "express";
-import { RestateProject, RestateClient, Order } from "restate-js";
+import { RestateProject, RestateClient, Order } from "restate-ts";
 
 const project: RestateProject = {
   async main(restate: RestateClient) {
@@ -556,7 +556,7 @@ Here's an example in [Jest](https://jestjs.io), but any test framework will work
 
 ```typescript
 import { test, expect, beforeEach } from "@jest/globals";
-import { Order, RestateClient, setupTestClient } from "restate-js";
+import { Order, RestateClient, setupTestClient } from "restate-ts";
 
 // Import project definition from "restate.ts"
 import project from "./restate";
